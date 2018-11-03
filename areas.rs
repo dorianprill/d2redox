@@ -1,5 +1,5 @@
 trait Areas {
-  const areas: & String[];
+  const areas: &str[];
 } 
 
 
