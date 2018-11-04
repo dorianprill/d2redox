@@ -1,0 +1,6 @@
+[package]
+name = "d2re"
+version = "0.1.0"
+authors = ["Dorian Prill <dorian.prill@gmail.com>"]
+
+[dependencies]
