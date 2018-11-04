@@ -1,19 +1,16 @@
 // Player struct
-// implements the Entity trait
+// composes with a WorldEntity struct
 
-use world_entity::*;
-use coordinate::*;
-
-pub mod player;
+use game::entity::world_entity::WorldEntity;
 
 struct Player {
-        name:               &str;
-        has_mercenary:      bool;
-        directory_known:    bool;
-        mercenary_id:       u32;
-        level:              u32;
-        portal_id:          u32;
-        pub entity:         WorldEntity;
+        name:               String,
+        has_mercenary:      bool,
+        directory_known:    bool,
+        mercenary_id:       u32,
+        level:              u32,
+        portal_id:          u32,
+        pub entity:         WorldEntity
         //protected Globals.CharacterClassType m_class;
 }
 
@@ -21,7 +18,7 @@ struct Player {
 //public Globals.CharacterClassType Class { get { return m_class; } set { m_class = value; } }
 
 impl Player {
-    pub fn name(&self) -> &str {
+    pub fn name(&self) -> String {
         return self.name
     }
 
@@ -47,7 +44,8 @@ impl Player {
     }
 
     pub fn set_level(&self, lvl: u32) -> u32 {
-        self.level = lvl
+        self.level = lvl;
+        return self.level
     }
 
     pub fn portal_id(&self) -> u32 {
@@ -55,7 +53,8 @@ impl Player {
     }
 
     pub fn set_portal_id(&self, portal_id: u32) -> u32 {
-        self.portal_id = portal_id
+        self.portal_id = portal_id;
+        return portal_id
     }
 
 }

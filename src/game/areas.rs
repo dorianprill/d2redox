@@ -1,10 +1,22 @@
+// definitions regarding act and areas
+
+pub enum ActType {
+    Act1 = 0,
+    Act2 = 1,
+    Act3 = 2,
+    Act4 = 3,
+    Act5 = 4
+}
+
+
+
 trait Areas {
   const areas: &str[];
-} 
+}
 
 
 impl Areas for Unknown {
-    const areas = ["Unknown"];
+    const areas: &str[] = ["Unknown"];
 }
 
 struct Act1;
@@ -23,9 +35,9 @@ impl Areas for Act1 {
                 "The Secret Cow Level"];
 }
 
-    
-struct Act2;    
-impl Areas for Act2 { 
+
+struct Act2;
+impl Areas for Act2 {
     const areas = ["Lut Gholein", "Rocky Waste", "Dry Hills", "Far Oasis", "Lost City",
                   "Valley Of Snakes", "Canyon Of The Magi", "Sewers Level 1",
                   "Sewers Level 2", "Sewers Level 3", "Harem Level 1", "Harem Level 2",
