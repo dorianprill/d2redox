@@ -1,12 +1,12 @@
 // // definitions regarding act and areas
 //
-// pub enum ActType {
-//     Act1 = 0,
-//     Act2 = 1,
-//     Act3 = 2,
-//     Act4 = 3,
-//     Act5 = 4
-// }
+pub enum ActType {
+    Act1 = 0,
+    Act2 = 1,
+    Act3 = 2,
+    Act4 = 3,
+    Act5 = 4
+}
 //
 //
 //

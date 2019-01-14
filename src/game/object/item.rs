@@ -1,3 +1,3 @@
-struct Item {
-    
+pub struct Item {
+
 }

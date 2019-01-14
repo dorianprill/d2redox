@@ -8,10 +8,8 @@ pub struct WorldEntity {
 
 impl WorldEntity {
 
-    pub fn new(&self, id: u32, x: u16, y: u16) {
-        self.initialized  = true;
-        self.id           = id;
-        self.location     = Coordinate{x, y};
+    pub fn new(id: u32, x: u16, y: u16) -> WorldEntity{
+        WorldEntity{initialized: true, id: id, location: Coordinate::new(x, y)}
     }
 
     pub fn initialized(&self) -> bool {
@@ -22,7 +20,7 @@ impl WorldEntity {
         return self.id
     }
 
-    pub fn location(&self) -> Coordinate {
+    pub fn location(self) -> Coordinate {
         return self.location
     }
 }

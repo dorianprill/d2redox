@@ -13,10 +13,7 @@ mod client;
 
 use pnet::datalink::{self, NetworkInterface};
 
-use pnet::packet::arp::ArpPacket;
 use pnet::packet::ethernet::{EtherTypes, EthernetPacket, MutableEthernetPacket};
-use pnet::packet::icmp::{echo_reply, echo_request, IcmpPacket, IcmpTypes};
-use pnet::packet::icmpv6::Icmpv6Packet;
 use pnet::packet::ip::{IpNextHeaderProtocol, IpNextHeaderProtocols};
 use pnet::packet::ipv4::Ipv4Packet;
 use pnet::packet::ipv6::Ipv6Packet;
@@ -31,6 +28,23 @@ use std::net::IpAddr;
 use std::process;
 
 
+fn handle_udp_packet(interface_name: &str, source: IpAddr, destination: IpAddr, packet: &[u8]) {
+    let udp = UdpPacket::new(packet);
+
+    if let Some(udp) = udp {
+        println!(
+            "[{}]: UDP Packet: {}:{} > {}:{}; length: {}",
+            interface_name,
+            source,
+            udp.get_source(),
+            destination,
+            udp.get_destination(),
+            udp.get_length()
+        );
+    } else {
+        println!("[{}]: Malformed UDP Packet", interface_name);
+    }
+}
 
 fn handle_tcp_packet(interface_name: &str, source: IpAddr, destination: IpAddr, packet: &[u8]) {
     let tcp = TcpPacket::new(packet);
@@ -62,12 +76,6 @@ fn handle_transport_protocol(
         }
         IpNextHeaderProtocols::Tcp => {
             handle_tcp_packet(interface_name, source, destination, packet)
-        }
-        IpNextHeaderProtocols::Icmp => {
-            handle_icmp_packet(interface_name, source, destination, packet)
-        }
-        IpNextHeaderProtocols::Icmpv6 => {
-            handle_icmpv6_packet(interface_name, source, destination, packet)
         }
         _ => println!(
             "[{}]: Unknown {} packet: {} > {}; protocol: {:?} length: {}",
@@ -120,7 +128,6 @@ fn handle_ethernet_frame(interface: &NetworkInterface, ethernet: &EthernetPacket
     match ethernet.get_ethertype() {
         EtherTypes::Ipv4 => handle_ipv4_packet(interface_name, ethernet),
         EtherTypes::Ipv6 => handle_ipv6_packet(interface_name, ethernet),
-        EtherTypes::Arp => handle_arp_packet(interface_name, ethernet),
         _ => println!(
             "[{}]: Unknown packet: {} > {}; ethertype: {:?} length: {}",
             interface_name,
@@ -135,20 +142,19 @@ fn handle_ethernet_frame(interface: &NetworkInterface, ethernet: &EthernetPacket
 fn main() {
     use pnet::datalink::Channel::Ethernet;
 
-    let iface_name = match env::args().nth(1) {
-        Some(n) => n,
-        None => {
-            writeln!(io::stderr(), "USAGE: packetdump <NETWORK INTERFACE>").unwrap();
-            process::exit(1);
-        }
-    };
-    let interface_names_match = |iface: &NetworkInterface| iface.name == iface_name;
+    // let iface_name = match env::args().nth(1) {
+    //     Some(n) => n,
+    //     None => {
+    //         writeln!(io::stderr(), "USAGE: packetdump <NETWORK INTERFACE>").unwrap();
+    //         process::exit(1);
+    //     }
+    // };
 
-    // Find the network interface with the provided name
+    // Find the first active network interface (not handling multiple cards yet)
     let interfaces = datalink::interfaces();
     let interface = interfaces
         .into_iter()
-        .filter(interface_names_match)
+        .filter(|ref ifx| ifx.is_up() && !ifx.is_loopback())
         .next()
         .unwrap();
 
@@ -169,21 +175,18 @@ fn main() {
                 {
                     // Maybe is TUN interface
                     let version = Ipv4Packet::new(&packet).unwrap().get_version();
+
+                    fake_ethernet_frame.set_destination(MacAddr(0, 0, 0, 0, 0, 0));
+                    fake_ethernet_frame.set_source(MacAddr(0, 0, 0, 0, 0, 0));
                     if version == 4 {
-                        fake_ethernet_frame.set_destination(MacAddr(0, 0, 0, 0, 0, 0));
-                        fake_ethernet_frame.set_source(MacAddr(0, 0, 0, 0, 0, 0));
                         fake_ethernet_frame.set_ethertype(EtherTypes::Ipv4);
-                        fake_ethernet_frame.set_payload(&packet);
-                        handle_ethernet_frame(&interface, &fake_ethernet_frame.to_immutable());
                         continue;
                     } else if version == 6 {
-                        fake_ethernet_frame.set_destination(MacAddr(0, 0, 0, 0, 0, 0));
-                        fake_ethernet_frame.set_source(MacAddr(0, 0, 0, 0, 0, 0));
                         fake_ethernet_frame.set_ethertype(EtherTypes::Ipv6);
-                        fake_ethernet_frame.set_payload(&packet);
-                        handle_ethernet_frame(&interface, &fake_ethernet_frame.to_immutable());
                         continue;
                     }
+                    fake_ethernet_frame.set_payload(&packet);
+                    handle_ethernet_frame(&interface, &fake_ethernet_frame.to_immutable());
                 }
                 handle_ethernet_frame(&interface, &EthernetPacket::new(packet).unwrap());
             }

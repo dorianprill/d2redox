@@ -5,11 +5,16 @@ pub struct Coordinate {
 }
 
 impl Coordinate {
+
+    pub fn new(x: u16, y: u16) -> Coordinate { // we create a method to instantiate `Foo`
+        Coordinate { x: x, y: y }
+    }
+
     pub fn equals(&self, other: Coordinate) -> bool {
         if self.x == other.x && self.y == other.y {
-            return true;
+            return true
         } else {
-            false
+            return false
         }
     }
 

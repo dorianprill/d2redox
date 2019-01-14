@@ -3,7 +3,7 @@
 
 use game::entity::world_entity::WorldEntity;
 
-struct Player {
+pub struct Player {
         name:               String,
         has_mercenary:      bool,
         directory_known:    bool,
@@ -18,7 +18,7 @@ struct Player {
 //public Globals.CharacterClassType Class { get { return m_class; } set { m_class = value; } }
 
 impl Player {
-    pub fn name(&self) -> String {
+    pub fn name(self) -> String {
         return self.name
     }
 
@@ -30,7 +30,7 @@ impl Player {
         return self.mercenary_id
     }
 
-    pub fn mercenary_id_set(&self, merc_id: u32) {
+    pub fn mercenary_id_set(&mut self, merc_id: u32) {
         self.has_mercenary  = true;
         self.mercenary_id   = merc_id;
     }
@@ -43,7 +43,7 @@ impl Player {
         return self.level
     }
 
-    pub fn set_level(&self, lvl: u32) -> u32 {
+    pub fn set_level(&mut self, lvl: u32) -> u32 {
         self.level = lvl;
         return self.level
     }
@@ -52,7 +52,7 @@ impl Player {
         return self.portal_id
     }
 
-    pub fn set_portal_id(&self, portal_id: u32) -> u32 {
+    pub fn set_portal_id(&mut self, portal_id: u32) -> u32 {
         self.portal_id = portal_id;
         return portal_id
     }

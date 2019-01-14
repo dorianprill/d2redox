@@ -1,8 +1,10 @@
-use game::entity::*;
-use game::object::*;
-use game::areas::*;
-use game::coordinate::*;
-use game::map::*;
+use game::entity::player::Player;
+use game::entity::npc::Npc;
+use game::object::item::Item;
+use game::object::world_object::WorldObject;
+use game::areas::ActType;
+use game::coordinate::Coordinate;
+//use game::map::*;
 
 
 pub enum Difficulty {
@@ -24,16 +26,16 @@ pub enum CharacterClass {
 pub struct Game {
     // skills: Vec<Skills>;
     // item_skills: Vec<ItemSkills>
-    myself:         entity::Player,
+    myself:         Player,
     // stash:       Container;
     // cube:        Container;
     // belt:        Belt;
 
-    players:        Vec<entity::Player>,
-    npcs:           Vec<entity::Npc>,
-    items:          Vec<object::Item>,
-    objects:        Vec<object::WorldObject>,
-    current_act:    areas::ActType,
+    players:        Vec<Player>,
+    npcs:           Vec<Npc>,
+    items:          Vec<Item>,
+    objects:        Vec<WorldObject>,
+    current_act:    ActType,
 }
 
 impl Game {
