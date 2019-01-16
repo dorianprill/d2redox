@@ -1,18 +1,19 @@
-// Copyright (c) 2014, 2015 Robert Clipsham <robert@octarineparrot.com>
+// Dorian Prill <drn@tuta.io>
 //
-// Licensed under the Apache License, Version 2.0 <LICENSE-APACHE or
-// http://www.apache.org/licenses/LICENSE-2.0> or the MIT license
-// <LICENSE-MIT or http://opensource.org/licenses/MIT>, at your
-// option. This file may not be copied, modified, or distributed
-// except according to those terms.
+// Entry point for d2re (Diablo II Reverse[d] Engine).
+// Sniffs all network packets sent by:
+//  1) Diablo II Game Server (D2GS)
+//  2) Battle.net Chat Server (BNCS)
+//  3) Realm Server for logon (MCP)
+// Then hands them over to the appropriate handling procedures.
+// WIP currently, ultimate goal would be enabling clientless botting
 
-/// This example shows a basic packet logger using libpnet
-extern crate pnet;
+
 mod game;
 mod client;
 
+extern crate pnet;
 use pnet::datalink::{self, NetworkInterface};
-
 use pnet::packet::ethernet::{EtherTypes, EthernetPacket, MutableEthernetPacket};
 use pnet::packet::ip::{IpNextHeaderProtocol, IpNextHeaderProtocols};
 use pnet::packet::ipv4::Ipv4Packet;
@@ -28,12 +29,18 @@ use std::net::IpAddr;
 use std::process;
 
 
+const PORTS: [u16; 2] = [6112, 4000];
+
+
 fn handle_udp_packet(interface_name: &str, source: IpAddr, destination: IpAddr, packet: &[u8]) {
     let udp = UdpPacket::new(packet);
 
     if let Some(udp) = udp {
+        if !PORTS.contains(&udp.get_destination()) {
+            return
+        }
         println!(
-            "[{}]: UDP Packet: {}:{} > {}:{}; length: {}",
+            "Recv D2 UDP Packet on [{}]: {}:{} > {}:{}; length: {}",
             interface_name,
             source,
             udp.get_source(),
@@ -49,8 +56,11 @@ fn handle_udp_packet(interface_name: &str, source: IpAddr, destination: IpAddr, 
 fn handle_tcp_packet(interface_name: &str, source: IpAddr, destination: IpAddr, packet: &[u8]) {
     let tcp = TcpPacket::new(packet);
     if let Some(tcp) = tcp {
+        if !PORTS.contains(&tcp.get_destination()) {
+            return
+        }
         println!(
-            "[{}]: TCP Packet: {}:{} > {}:{}; length: {}",
+            "Recv D2 TCP Packet on [{}]: {}:{} > {}:{}; length: {}",
             interface_name,
             source,
             tcp.get_source(),
@@ -63,12 +73,13 @@ fn handle_tcp_packet(interface_name: &str, source: IpAddr, destination: IpAddr, 
     }
 }
 
+
 fn handle_transport_protocol(
     interface_name: &str,
-    source: IpAddr,
-    destination: IpAddr,
-    protocol: IpNextHeaderProtocol,
-    packet: &[u8],
+    source:         IpAddr,
+    destination:    IpAddr,
+    protocol:       IpNextHeaderProtocol,
+    packet:         &[u8],
 ) {
     match protocol {
         IpNextHeaderProtocols::Udp => {
@@ -77,18 +88,20 @@ fn handle_transport_protocol(
         IpNextHeaderProtocols::Tcp => {
             handle_tcp_packet(interface_name, source, destination, packet)
         }
-        _ => println!(
-            "[{}]: Unknown {} packet: {} > {}; protocol: {:?} length: {}",
-            interface_name,
-            match source {
-                IpAddr::V4(..) => "IPv4",
-                _ => "IPv6",
-            },
-            source,
-            destination,
-            protocol,
-            packet.len()
-        ),
+        _ => ()
+        // TODO make debug only print
+        // _ => println!(
+        //     "[{}]: Unknown {} packet: {} > {}; protocol: {:?} length: {}",
+        //     interface_name,
+        //     match source {
+        //         IpAddr::V4(..) => "IPv4",
+        //         _ => "IPv6",
+        //     },
+        //     source,
+        //     destination,
+        //     protocol,
+        //     packet.len()
+        //),
     }
 }
 
@@ -128,41 +141,38 @@ fn handle_ethernet_frame(interface: &NetworkInterface, ethernet: &EthernetPacket
     match ethernet.get_ethertype() {
         EtherTypes::Ipv4 => handle_ipv4_packet(interface_name, ethernet),
         EtherTypes::Ipv6 => handle_ipv6_packet(interface_name, ethernet),
-        _ => println!(
-            "[{}]: Unknown packet: {} > {}; ethertype: {:?} length: {}",
-            interface_name,
-            ethernet.get_source(),
-            ethernet.get_destination(),
-            ethernet.get_ethertype(),
-            ethernet.packet().len()
-        ),
+        _ => ()
+            // TODO make debug only print
+            // println!(
+            // "[{}]: Unknown packet: {} > {}; ethertype: {:?} length: {}",
+            // interface_name,
+            // ethernet.get_source(),
+            // ethernet.get_destination(),
+            // ethernet.get_ethertype(),
+            // ethernet.packet().len()
+        //),
     }
 }
+
 
 fn main() {
     use pnet::datalink::Channel::Ethernet;
 
-    // let iface_name = match env::args().nth(1) {
-    //     Some(n) => n,
-    //     None => {
-    //         writeln!(io::stderr(), "USAGE: packetdump <NETWORK INTERFACE>").unwrap();
-    //         process::exit(1);
-    //     }
-    // };
-
-    // Find the first active network interface (not handling multiple cards yet)
+    // Find the first network interface connected to the internet
     let interfaces = datalink::interfaces();
     let interface = interfaces
         .into_iter()
-        .filter(|ref ifx| ifx.is_up() && !ifx.is_loopback())
+        .filter(|ref ifx| ifx.is_up() && !ifx.is_loopback() && ifx.ips.len() > 0)
         .next()
         .unwrap();
+
+    println!("Identified network interface {}", interface);
 
     // Create a channel to receive on
     let (_, mut rx) = match datalink::channel(&interface, Default::default()) {
         Ok(Ethernet(tx, rx)) => (tx, rx),
-        Ok(_) => panic!("packetdump: unhandled channel type: {}"),
-        Err(e) => panic!("packetdump: unable to create channel: {}", e),
+        Ok(_) => panic!("unhandled channel type: {}"),
+        Err(e) => panic!("unable to create channel: {}", e),
     };
 
     loop {
@@ -190,7 +200,7 @@ fn main() {
                 }
                 handle_ethernet_frame(&interface, &EthernetPacket::new(packet).unwrap());
             }
-            Err(e) => panic!("packetdump: unable to receive packet: {}", e),
+            Err(e) => panic!("unable to receive packet: {}", e),
         }
     }
 }

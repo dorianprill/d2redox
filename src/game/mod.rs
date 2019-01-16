@@ -1,4 +1,3 @@
-pub mod game;
 pub mod areas;
 pub mod coordinate;
 pub mod entity;
