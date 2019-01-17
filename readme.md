@@ -12,15 +12,15 @@ toy project botting engine for learning rust & reverse engineering with one of m
 1. read raw network packages and filter by port
    - identify protocol for each package (D2GS, BNCS, MCP) and pass them on to their specific handlers  
 2. Track the needed game state in own data structures.  
-  - Items (Ground, Inventory, Stash, Cube, Belt)
-  - Players and party
-  - Quests
+   - Items (Ground, Inventory, Stash, Cube, Belt)
+   - Players and party
+   - Quests
 3. Priority based event handling for modules (e.g. chicken, pickit, \[move, combat, ...\])
-  - Write chicken module
-  - Write Pickit module (parse configuration from .nip files, see kolbot)
+   - Write chicken module
+   - Write Pickit module (parse configuration from .nip files, see kolbot)
 4. Generate game maps from game seed
-  - Implement pathing (to walk/teleport to pick location or gateway)
-  - Maybe display as ASCII in console 	 
+   - Implement pathing (to walk/teleport to pick location or gateway)
+   - Maybe display as ASCII in console 	 
 5. allow scripting with gluon, dyon or lua
 
 ## How to Run
