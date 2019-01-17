@@ -160,13 +160,22 @@ fn main() {
 
     // Find the first network interface connected to the internet
     let interfaces = datalink::interfaces();
-    let interface = interfaces
+    let some_if: Option<NetworkInterface> = Some(interfaces
         .into_iter()
         .filter(|ref ifx| ifx.is_up() && !ifx.is_loopback() && ifx.ips.len() > 0)
         .next()
-        .unwrap();
+        .unwrap());
 
-    println!("Identified network interface {}", interface);
+    let interface: NetworkInterface;
+
+    if some_if != None {
+    	interface = some_if.unwrap();
+	    println!("Identified network interface {}", interface);
+    } else {
+	    println!("No active network adapter found");
+	    process::exit(1);
+    }
+
 
     // Create a channel to receive on
     let (_, mut rx) = match datalink::channel(&interface, Default::default()) {
