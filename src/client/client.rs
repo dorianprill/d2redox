@@ -1,4 +1,3 @@
-use game::*;
 
 pub enum Status {
     Uninitialized,
@@ -16,5 +15,5 @@ pub enum Status {
 }
 
 pub struct Client {
-    //game_instance: Game;
+    //game_instance: &Game;
 }

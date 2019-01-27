@@ -11,6 +11,7 @@
 
 mod game;
 mod client;
+mod engine;
 
 extern crate pnet;
 use pnet::datalink::{self, NetworkInterface};
@@ -23,35 +24,14 @@ use pnet::packet::udp::UdpPacket;
 use pnet::packet::Packet;
 use pnet::util::MacAddr;
 
-use std::env;
-use std::io::{self, Write};
+//use std::env;
+//use std::io::{self, Write};
 use std::net::IpAddr;
 use std::process;
 
 
 const PORTS: [u16; 2] = [6112, 4000];
 
-
-fn handle_udp_packet(interface_name: &str, source: IpAddr, destination: IpAddr, packet: &[u8]) {
-    let udp = UdpPacket::new(packet);
-
-    if let Some(udp) = udp {
-        if !PORTS.contains(&udp.get_destination()) {
-            return
-        }
-        println!(
-            "Recv D2 UDP Packet on [{}]: {}:{} > {}:{}; length: {}",
-            interface_name,
-            source,
-            udp.get_source(),
-            destination,
-            udp.get_destination(),
-            udp.get_length()
-        );
-    } else {
-        println!("[{}]: Malformed UDP Packet", interface_name);
-    }
-}
 
 fn handle_tcp_packet(interface_name: &str, source: IpAddr, destination: IpAddr, packet: &[u8]) {
     let tcp = TcpPacket::new(packet);
@@ -60,14 +40,23 @@ fn handle_tcp_packet(interface_name: &str, source: IpAddr, destination: IpAddr, 
             return
         }
         println!(
-            "Recv D2 TCP Packet on [{}]: {}:{} > {}:{}; length: {}",
+            "Recv D2 TCP Packet on [{}]: {}:{} > {}:{}; length: {}; content: {:x?}",
             interface_name,
             source,
             tcp.get_source(),
             destination,
             tcp.get_destination(),
-            packet.len()
+            packet.len(),
+            packet
         );
+        match tcp.get_destination() {
+            // game packet
+            4000 => engine::handlers::game_packet::game_packet_handler(&packet),
+            // bncs/realm packet -> not implemented yet
+            6112 => (),
+            _ => (),
+        }
+
     } else {
         println!("[{}]: Malformed TCP Packet", interface_name);
     }
@@ -82,9 +71,9 @@ fn handle_transport_protocol(
     packet:         &[u8],
 ) {
     match protocol {
-        IpNextHeaderProtocols::Udp => {
-            handle_udp_packet(interface_name, source, destination, packet)
-        }
+        //IpNextHeaderProtocols::Udp => {
+        //    handle_udp_packet(interface_name, source, destination, packet)
+        //}
         IpNextHeaderProtocols::Tcp => {
             handle_tcp_packet(interface_name, source, destination, packet)
         }
