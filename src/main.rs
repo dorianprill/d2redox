@@ -28,37 +28,68 @@ use pnet::util::MacAddr;
 //use std::io::{self, Write};
 use std::net::IpAddr;
 use std::process;
+use std::str;
 
 
 const PORTS: [u16; 2] = [6112, 4000];
 
+fn handle_udp_packet(source: IpAddr, destination: IpAddr, packet: &[u8]) {
+    let udp = UdpPacket::new(packet);
 
-fn handle_tcp_packet(interface_name: &str, source: IpAddr, destination: IpAddr, packet: &[u8]) {
-    let tcp = TcpPacket::new(packet);
-    if let Some(tcp) = tcp {
-        if !PORTS.contains(&tcp.get_destination()) {
-            return
-        }
-        println!(
-            "Recv D2 TCP Packet on [{}]: {}:{} > {}:{}; length: {}; content: {:x?}",
-            interface_name,
-            source,
-            tcp.get_source(),
-            destination,
-            tcp.get_destination(),
-            packet.len(),
-            packet
-        );
-        match tcp.get_destination() {
+    if let Some(udp) = udp {
+        // filter packet by ports used by d2, will continue for both sent & received
+        //if !PORTS.contains(&udp.get_destination()) && !PORTS.contains(&udp.get_source()) {
+        //    return
+        //}
+        match udp.get_destination() {
             // game packet
             4000 => engine::handlers::game_packet::game_packet_handler(&packet),
             // bncs/realm packet -> not implemented yet
             6112 => (),
-            _ => (),
+            _ => return,
         }
-
+        // println!(
+        //         "UDP {}:{} > {}:{}  len={:03}  {:x?}  {:?}",
+        //         source,
+        //         udp.get_source(),
+        //         destination,
+        //         udp.get_destination(),
+        //         udp.payload().len(),
+        //         udp.payload(),
+        //         String::from_utf8_lossy(udp.payload()).into_owned()
+        // );
     } else {
-        println!("[{}]: Malformed TCP Packet", interface_name);
+        println!("Malformed UDP Packet");
+    }
+}
+
+
+fn handle_tcp_packet(source: IpAddr, destination: IpAddr, packet: &[u8]) {
+    let tcp = TcpPacket::new(packet);
+    if let Some(tcp) = tcp {
+        // filter packet by ports used by d2, will continue for both sent & received
+        //if !PORTS.contains(&tcp.get_destination()) {//&& !PORTS.contains(&tcp.get_source()) {
+        //    return
+        //}
+        match tcp.get_destination() {
+            // game packet
+            4000 => engine::handlers::game_packet::game_packet_handler(&tcp.payload()),
+            // bncs/realm packet -> not implemented yet
+            6112 => (),
+            _ => return,
+        }
+        // println!(
+        //     "TCP {}:{} > {}:{}  len={:03}  {:x?}  {:?}",
+        //     source,
+        //     tcp.get_source(),
+        //     destination,
+        //     tcp.get_destination(),
+        //     tcp.payload().len(),
+        //     tcp.payload(),
+        //     String::from_utf8_lossy(tcp.payload()).into_owned()
+        // );
+    } else {
+        println!("Malformed TCP Packet");
     }
 }
 
@@ -71,26 +102,24 @@ fn handle_transport_protocol(
     packet:         &[u8],
 ) {
     match protocol {
-        //IpNextHeaderProtocols::Udp => {
-        //    handle_udp_packet(interface_name, source, destination, packet)
-        //}
-        IpNextHeaderProtocols::Tcp => {
-            handle_tcp_packet(interface_name, source, destination, packet)
+        IpNextHeaderProtocols::Udp => {
+           handle_udp_packet(source, destination, packet)
         }
-        _ => ()
-        // TODO make debug only print
-        // _ => println!(
-        //     "[{}]: Unknown {} packet: {} > {}; protocol: {:?} length: {}",
-        //     interface_name,
-        //     match source {
-        //         IpAddr::V4(..) => "IPv4",
-        //         _ => "IPv6",
-        //     },
-        //     source,
-        //     destination,
-        //     protocol,
-        //     packet.len()
-        //),
+        IpNextHeaderProtocols::Tcp => {
+            handle_tcp_packet(source, destination, packet)
+        }
+        _ => println!(
+            "[{}]: Unhandled {} packet: {} > {}; protocol: {:?} length: {}",
+            interface_name,
+            match source {
+                IpAddr::V4(..) => "IPv4",
+                _ => "IPv6",
+            },
+            source,
+            destination,
+            protocol,
+            packet.len()
+        ),
     }
 }
 
@@ -161,7 +190,7 @@ fn main() {
     	interface = some_if.unwrap();
 	    println!("Identified network interface {}", interface);
     } else {
-	    println!("No active network adapter found");
+	    println!("No active network adapter found, aborting...");
 	    process::exit(1);
     }
 
@@ -178,9 +207,8 @@ fn main() {
         let mut fake_ethernet_frame = MutableEthernetPacket::new(&mut buf[..]).unwrap();
         match rx.next() {
             Ok(packet) => {
-                if cfg!(target_os = "macos") && interface.is_up() && !interface.is_broadcast()
-                    && !interface.is_loopback() && interface.is_point_to_point()
-                {
+                if cfg!(target_os = "macos")  && !interface.is_broadcast()
+                     && interface.is_point_to_point() {
                     // Maybe is TUN interface
                     let version = Ipv4Packet::new(&packet).unwrap().get_version();
 
