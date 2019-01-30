@@ -1,5 +1,6 @@
 use game::coordinate::Coordinate;
 
+#[allow(dead_code)]
 pub struct WorldEntity {
     initialized     :bool,
     id              :u32,

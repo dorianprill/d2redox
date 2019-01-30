@@ -6,13 +6,14 @@ use game::areas::ActType;
 use game::coordinate::Coordinate;
 //use game::map::*;
 
-
+#[allow(dead_code)]
 pub enum Difficulty {
     Normal,
     Nightmare,
     Hell
 }
 
+#[allow(dead_code)]
 pub enum CharacterClass {
     Amazon,
     Sorceress,
@@ -23,6 +24,7 @@ pub enum CharacterClass {
     Assassin
 }
 
+#[allow(dead_code)]
 pub struct Game {
     // skills: Vec<Skills>;
     // item_skills: Vec<ItemSkills>

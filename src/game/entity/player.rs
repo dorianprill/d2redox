@@ -3,6 +3,8 @@
 
 use game::entity::world_entity::WorldEntity;
 
+
+#[allow(dead_code)]
 pub struct Player {
         name:               String,
         has_mercenary:      bool,

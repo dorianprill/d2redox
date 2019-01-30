@@ -1,5 +1,6 @@
 // // definitions regarding act and areas
 //
+#[allow(dead_code)]
 pub enum ActType {
     Act1 = 0,
     Act2 = 1,

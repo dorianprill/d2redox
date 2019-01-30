@@ -3,6 +3,8 @@ pub mod npc;
 pub mod world_entity;
 pub mod mercenary;
 
+
+#[allow(dead_code)]
 pub enum EntityType {
     Player      = 0x00,
     NPC         = 0x01, // NPC, Mercenary, Monster

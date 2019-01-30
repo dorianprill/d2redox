@@ -50,8 +50,9 @@ enum ServerPacket {
 pub fn game_packet_handler(packet: &[u8]) {
     if packet.len() < 2 || (packet[0] >= 0xF0 && packet.len() < 3) {
         // invalid game packet
-        return
-    //} else if packet[0] >= 0xF0 { 
+    	return
+	}
+    //} else if packet[0] >= 0xF0 {
     // TODO need to convert compressed packet parsing code
     // Int32 headerSize;
     // Int32 length = Huffman.GetPacketSize(buffer, out headerSize);

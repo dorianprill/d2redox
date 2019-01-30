@@ -1,4 +1,5 @@
 // (X,Y)-coordinates on the map to localize objects and entities
+#[allow(dead_code)]
 pub struct Coordinate {
     x: u16,
     y: u16
