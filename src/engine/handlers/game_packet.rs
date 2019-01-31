@@ -1,9 +1,9 @@
 use engine::handlers::game_event::*;
-use engine::huffman;
-/// Server->Client ServerPacket is determined by the first byte of its content i.e. packet[0]
+use d2re::connection::d2gs::D2GSPacket;
+/// Server->Client MessageId is determined by the first byte of its content i.e. packet[0]
 #[allow(dead_code)]
 #[repr(u8)]
-enum ServerPacket {
+enum MessageId {
     GameLoading         = 0x00,
     GameFlagsPing       = 0x01,
     SetLocale           = 0x02, // what is this really?
@@ -47,78 +47,31 @@ enum ServerPacket {
 
 
 /// Packet handler calls the corresponding event handler functions in game_event.rs
-pub fn game_packet_handler(packet: &[u8]) {
-    if packet.len() < 2 || (packet[0] >= 0xF0 && packet.len() < 3) {
-        // invalid game packet
-    	return
-	}
-    //} else if packet[0] >= 0xF0 {
-    // TODO need to convert compressed packet parsing code
-    // Int32 headerSize;
-    // Int32 length = Huffman.GetPacketSize(buffer, out headerSize);
-    // if (length > buffer.Count)
-    //     break;
-    //
-    // byte[] compressedPacket = buffer.GetRange(headerSize, length).ToArray();
-    // buffer.RemoveRange(0, length + headerSize);
-    //
-    //
-    // byte[] decompressedPacket;
-    // Huffman.Decompress(compressedPacket, out decompressedPacket);
-    // List<byte> packet = new List<byte>(decompressedPacket);
-    // while (packet.Count != 0)
-    // {
-    //     Int32 packetSize;
-    //     if (!GetPacketSize(packet, out packetSize))
-    //     {
-    //         Logger.Write("Failed to determine packet length");
-    //         break;
-    //     }
-    //     List<byte> actualPacket = new List<byte>(packet.GetRange(0, packetSize));
-    //     packet.RemoveRange(0, packetSize);
-    //
-    //     lock (m_connection.Packets)
-    //     {
-    //         //Logger.Write("Adding a D2GS packet {0:X2}", actualPacket[0]);
-    //         m_connection.Packets.Enqueue(1, actualPacket);
-    //     }
-    //     m_connection.PacketsReady.Set();
-    //
-    // }
+pub fn game_packet_handler(packet: &D2GSPacket) {
 
-    // Check if received packet is compressed
-    let mut result: Vec<u8> = Vec::new();
-    let mut which: &[u8] = packet;
-    let mut decompress = false;
-    if packet[0] >= 0xF0 {
-        // and decode the packet
-        huffman::decode(packet, result.as_mut()) ;
-        which = result.as_mut();
-        decompress = true;
-    }
-    println!(
-        "recv d2gs packet len={:04} decompress={:?} {:x?}  {:?}",
-        which.len(),
-        decompress,
-        which,
-        String::from_utf8_lossy(which).into_owned()
-    );
+    // println!(
+    //     "recv d2gs packet len={:04} decompress={:?} {:x?}  {:?}",
+    //     which.len(),
+    //     decompress,
+    //     which,
+    //     String::from_utf8_lossy(which).into_owned()
+    // );
     // how to get rid of this unsafe block?
     // enum has #[repr(u8)] so should'nt be a problem...
-    let header: ServerPacket = unsafe { ::std::mem::transmute(which[0]) };
+    let header: MessageId = unsafe { ::std::mem::transmute(which[0]) };
     match header {
-        ServerPacket::SetLocale       => (),
-        ServerPacket::PlayerReassign  => (),
-        ServerPacket::ChatMessage     => chat_event_handler(&which),
-        ServerPacket::NPCTransaction  => (),
-        ServerPacket::EventMessage    => (),
-        ServerPacket::LifeManaUpdate1
-            | ServerPacket::LifeManaUpdate2
+        MessageId::SetLocale       => (),
+        MessageId::PlayerReassign  => (),
+        MessageId::ChatMessage     => chat_event_handler(&which),
+        MessageId::NPCTransaction  => (),
+        MessageId::EventMessage    => (),
+        MessageId::LifeManaUpdate1
+            | MessageId::LifeManaUpdate2
                                       => (),
-        ServerPacket::ItemAction1
-          | ServerPacket::ItemAction2 => (),
-        ServerPacket::DelayedStated   => (),
-        ServerPacket::WardenScan      => (),
+        MessageId::ItemAction1
+          | MessageId::ItemAction2 => (),
+        MessageId::DelayedStated   => (),
+        MessageId::WardenScan      => (),
         _ => (),
     }
 }

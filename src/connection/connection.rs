@@ -18,7 +18,7 @@ use pnet::util::MacAddr;
 use std::collections::BinaryHeap
 
 use raw_packet::RawPacket;
-
+use d2gs::D2GSPacket;
 
 // There are three different connection involved:
 // BNCS: the battle.net chat server

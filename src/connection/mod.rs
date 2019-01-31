@@ -1,4 +1,5 @@
+pub mod huffman;
 pub mod bnet;
 pub mod mcp;
-pub mod D2GS;
-pub mod MCP;
+pub mod d2gs;
+pub mod mcp;

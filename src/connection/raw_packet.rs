@@ -21,17 +21,18 @@ pub struct RawPacket {
 
 
 impl RawPacket {
+
 	pub fn payload(&self) -> &[u8] {
-		return self.raw
+		self.raw
 	}
 
 	pub fn priority(&self) -> u8 {
-		return self.priority
+		self.priority
 	}
 }
 
 impl Ord for RawPacket {
 	fn cmp(&self, other: &RawPacket) -> Ordering {
-        self.priority.cmp(&other.height)
+        self.priority.cmp(&other.priority)
     }
 }
