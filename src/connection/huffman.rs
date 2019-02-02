@@ -128,7 +128,7 @@ const COMPRESSION_TABLE: [u32; 256] = [
         0x22080203, 0x0C080306, 0x0C080307, 0x0D080300, 0x0D080301, 0x0D080302, 0x0D080303, 0x6C060000];
 
 
-pub fn decode(input: &[u8], output: &mut [u8]) {
+pub fn decompress(input: &[u8], output: &mut [u8]) {
     if Some(input) == None {
         panic!("decode(): Invalid input reference");
     }

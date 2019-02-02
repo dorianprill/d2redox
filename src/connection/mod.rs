@@ -1,5 +1,4 @@
 pub mod huffman;
-pub mod bnet;
-pub mod mcp;
+pub mod generic;
 pub mod d2gs;
-pub mod mcp;
+pub mod raw_packet;

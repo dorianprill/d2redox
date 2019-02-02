@@ -1,5 +1,5 @@
 use engine::handlers::game_event::*;
-use d2re::connection::d2gs::D2GSPacket;
+use connection::d2gs::d2gs_packet::D2GSPacket;
 /// Server->Client MessageId is determined by the first byte of its content i.e. packet[0]
 #[allow(dead_code)]
 #[repr(u8)]
@@ -47,7 +47,7 @@ enum MessageId {
 
 
 /// Packet handler calls the corresponding event handler functions in game_event.rs
-pub fn game_packet_handler(packet: &D2GSPacket) {
+pub fn game_packet_dispatch(packet: &D2GSPacket) {
 
     // println!(
     //     "recv d2gs packet len={:04} decompress={:?} {:x?}  {:?}",
@@ -58,11 +58,11 @@ pub fn game_packet_handler(packet: &D2GSPacket) {
     // );
     // how to get rid of this unsafe block?
     // enum has #[repr(u8)] so should'nt be a problem...
-    let header: MessageId = unsafe { ::std::mem::transmute(which[0]) };
-    match header {
+    let dispatch_id: MessageId = unsafe { ::std::mem::transmute(packet.packet_id()) };
+    match dispatch_id {
         MessageId::SetLocale       => (),
         MessageId::PlayerReassign  => (),
-        MessageId::ChatMessage     => chat_event_handler(&which),
+        MessageId::ChatMessage     => chat_event_handler(packet),
         MessageId::NPCTransaction  => (),
         MessageId::EventMessage    => (),
         MessageId::LifeManaUpdate1
