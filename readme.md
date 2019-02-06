@@ -9,28 +9,37 @@ toy project botting engine for learning rust & reverse engineering with one of m
   - conceptually allow for clientless botting   
 
 ## Milestones:
-1. read raw network packages and filter by port
-   - identify protocol for each package (D2GS, BNCS, MCP) and pass them on to their specific handlers  
+1. read raw network packages, filter by port, identify protocol for each package and pass them on to their specific handlers  
+ - [x] D2GS (plain)  
+ - [ ] D2GS (compressed)  
+ - [ ] BNCS  
+ - [ ] MCP
+ - [ ] Serialize decoded D2GS Packets and send to pimap for rendering
 2. Track the needed game state in own data structures.  
-   - Items (Ground, Inventory, Stash, Cube, Belt)
-   - Players and party
-   - Quests
+   - [ ] Items (Ground, Inventory, Stash, Cube, Belt)
+   - [ ] Players and party
+   - [ ] Quests
 3. Priority based event handling for modules (e.g. chicken, pickit, \[move, combat, ...\])
-   - Write chicken module
-   - Write Pickit module (parse configuration from .nip files, see kolbot)
+   - [ ] Chicken module
+   - [ ] Pickit module (parse configuration from .nip files, see kolbot)
 4. Generate game maps from game seed
-   - Implement pathing (to walk/teleport to pick location or gateway)
-   - Maybe display as ASCII in console 	 
-5. allow scripting with gluon, dyon or lua
+   - [ ] Implement pathing (to walk/teleport to pick location or gateway)
+   - [ ] Maybe display as ASCII in console 	 
+5. allow scripting with gluon, dyon or lua?
+
+## How to Build
+### Linux
+`cargo build --release`
+### Mac Os
+`cargo build --release` (not tested yet)
+### Windows
+You will need to install WinPcap or npcap  and download the WinPcap developer tools as per the [libpnet](https://github.com/libpnet/libpnet) build instructions for Windows. Then point your `$Env:LIB` to the Folder where to find Packet.lib i.e. `WpdPack/Lib/x64/Packet.lib`. Then `cargo build --release`
+I got it building with npcap+Packet.lib but the executable crashes when trying to find Packet.lib so further steps are necessary.  
 
 ## How to Run
-### Linux
-Just build it with cargo and run the executable, should work right out of the box
-### Mac Os
-Not tested yet
-### Windows
-You will need to install WinPcap or npcap  and download the WinPcap developer tools as per the [libpnet](https://github.com/libpnet/libpnet) build instructions for Windows. Then point your `$Env:LIB` to the Folder where to find Packet.lib i.e. `WpdPack/Lib/x64/Packet.lib`.
-I got it building with npcap+Packet.lib but the executable crashes when trying to find Packet.lib so further steps are necessary.
+1. Launch a Diablo II client.
+2. Execute `target/release/d2re` which will launch a command window
+3. Connect to b.net and watch the output of the packet sniffer in the command window (packet id + payload as hex)
 
 ### Disclaimer
 Little of this works yet and most probably never will. Unless you feel like **contributing, which is welcome**, it remains a haxercise :)  

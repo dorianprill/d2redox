@@ -1,5 +1,6 @@
 use connection::d2gs::d2gs_packet::D2GSPacket;
 use connection::huffman;
+use engine::handlers::game_packet::game_packet_dispatch;
 
 use std::collections::VecDeque;
 
@@ -72,7 +73,16 @@ impl D2GSReader {
 			self.packets.push_back(D2GSPacket{data: decompressed_chunk.clone()});
 			start = end+1;
 		}
+
+		// After internal packet queue is filled, pop & handle all
+		self.handle_all();
     }
+
+	pub fn handle_all(&mut self) {
+		while let Some(p) = self.packets.pop_front() {
+			game_packet_dispatch(&p);
+		}
+	}
 
 
     fn get_chunk_params(&self, raw: &[u8], header_size: &mut usize) -> usize {

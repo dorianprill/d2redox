@@ -15,7 +15,6 @@ mod connection;
 mod engine;
 mod game;
 
-use connection::d2gs::d2gs_packet::D2GSPacket;
 use connection::generic::Connection;
 
 

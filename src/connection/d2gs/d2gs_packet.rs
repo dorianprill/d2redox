@@ -1,4 +1,6 @@
 /// decoded D2GS packet data type
+use std::fmt;
+use engine::handlers::game_packet::MessageId;
 
 pub trait AsBytes {
 	fn as_bytes(&self) -> &[u8];
@@ -15,10 +17,21 @@ impl AsBytes for D2GSPacket {
 	}
 }
 
+impl fmt::Display for D2GSPacket {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "Values:\n")?;
+		let id: MessageId = unsafe { ::std::mem::transmute(self.packet_id()) };
+		write!(f, "{} (0x{}) Payload: , ", id, self.packet_id())?;
+        for v in &self.data {
+            write!(f, "{}, ", v)?;
+        }
+        Ok(())
+    }
+}
+
+
 impl D2GSPacket {
-	pub fn new(&self, raw: &[u8]) -> Self {
-		return D2GSPacket{data: Vec::from(raw)};
-	}
+
 	pub fn packet_id(&self) -> u8 {
 		return self.data[0];
 	}
