@@ -4,7 +4,7 @@ use engine::handlers::game_packet::game_packet_dispatch;
 
 use std::collections::VecDeque;
 
-const KNOWN_LENGTHS: [u16; 177] = [
+const PACKET_SIZES: [u16; 177] = [
 			1, 8, 1, 12, 1, 1, 1, 6, 6, 11, 6, 6, 9, 13, 12, 16,
 			16, 8, 26, 14, 18, 11, 0, 0, 15, 2, 2, 3, 5, 3, 4, 6,
 			10, 12, 12, 13, 90, 90, 0, 40, 103,97, 15, 0, 8, 0, 0, 0,
@@ -48,16 +48,8 @@ impl D2GSReader {
     /// message_size does include itself
     /// One compressed package will decode into several uncompressed ones
     pub fn read(&mut self, raw: &[u8]) {
-        // is invalid packet
-		if raw.len() < 2 || (raw[0] >= 0xF0 && raw.len() < 3) {
-			println!("D2GSReader::read(): invalid packet");
-			return;
-		}
-		// or is plain packet
-		if KNOWN_LENGTHS.contains(&(raw.len() as u16)) {
-			self.packets.push_back(D2GSPacket{data: raw.to_vec()});
 
-		}
+
 		// else is compressed packet
 		let mut decompressed_chunk = Vec::with_capacity(raw.len());
 		let mut start: 		usize = 0;
@@ -67,16 +59,36 @@ impl D2GSReader {
 
 		while (start + nheader + ndata) < raw.len() {
 
-			ndata = self.get_chunk_params(&raw[start..], &mut nheader);
+			// check packet validity
+			if raw[start..].len() < 2 || (raw[start] >= 0xF0 && raw[start..].len() < 3) {
+				println!("D2GSReader::read(): input too short");
+				return
+			}
+
+			ndata = huffman::get_chunk_params(&raw[start..], &mut nheader);
+			if ndata > raw[start..].len() {
+				// something went wrong
+				println!("D2GSReader::read(): invalid chunk params");
+	            return
+			}
 			end = start+nheader+ndata;
 			huffman::decompress(&raw[start..end], &mut decompressed_chunk);
-			self.packets.push_back(D2GSPacket{data: decompressed_chunk.clone()});
-			start = end+1;
+			start = end+1; // proceed with next chunk
+			while decompressed_chunk.len() > 0 {
+				let mut actual_size: i32 = 0;
+				if !get_packet_size(&decompressed_chunk, &mut actual_size) {
+					println!("D2GSReader::read(): failed to determine packet length");
+                    return
+                }
+            	self.packets.push_back(D2GSPacket{data: decompressed_chunk.drain(0..actual_size as usize).collect()});
+			}
+
 		}
 
 		// After internal packet queue is filled, pop & handle all
 		self.handle_all();
     }
+
 
 	pub fn handle_all(&mut self) {
 		while let Some(p) = self.packets.pop_front() {
@@ -84,15 +96,94 @@ impl D2GSReader {
 		}
 	}
 
+} // impl D2GSReader
 
-    fn get_chunk_params(&self, raw: &[u8], header_size: &mut usize) -> usize {
-        if raw[0] < 0xF0 {
-            *header_size = 1 as usize;
-            return raw[0] as usize - 1;
-        }
-        *header_size = 2;
-        // only bottom 3 nibbles due to header offset (-2)?
-        return ( (( (raw[0] as u16) << 8) | raw[1] as u16) & 0xFFF ) as usize
-    }
 
+// translated from OmegaBot
+pub fn get_chat_packet_size(input: &[u8], out: &mut i32) -> bool {
+	let mut output: i32 = 0;
+	if input.len() < 12 {
+		return false;
+	}
+
+	const initial_offset: i32 = 10;
+	let mut name_offset: i32 = input
+						.iter()
+						.position(|&x| (x as i32) == initial_offset)
+						.unwrap() as i32;
+
+	if name_offset == -1 {
+		return false;
+	}
+	name_offset -= initial_offset;
+
+	let mut message_offset: i32 = input
+						.iter()
+						.position(|&x| (x as i32) == (initial_offset + name_offset + 1))
+						.unwrap() as i32;
+
+	if message_offset == -1 {
+		return false;
+	}
+
+	message_offset = message_offset - initial_offset - name_offset -1;
+	output = initial_offset + name_offset + 1 + message_offset + 1;
+
+	return true;
+}
+
+// This was taken from Redvex according to qqbot source
+pub fn get_packet_size(input: &[u8], output: &mut i32) -> bool {
+	let identifier: u8 = input[0];
+	let size = input.len() as i32;
+
+	match identifier {
+		0x26 =>
+			if get_chat_packet_size(input, output ) {
+				return true;
+			}
+		0x5B =>
+			if size >= 3 {
+				*output = ((input[1] as i32) << 8) & input[2] as i32;
+				return true;
+			}
+		0x94 =>
+			if size >= 2 {
+				*output = input[1] as i32 * 3 + 6;
+				return true;
+			}
+		0xA8
+		| 0xAA =>
+			if size >= 7 {
+				*output = input[6] as i32;
+				return true;
+			}
+		0xAC =>
+			if size >= 13 {
+				*output = input[12] as i32;
+				return true;
+			}
+		0xAE =>
+			if size >= 3 {
+				*output = 3 + ((input[1] as i32) << 8) & input[2] as i32;
+				return true;
+			}
+		0x9C =>
+			if size >= 3 {
+				*output = input[2] as i32;
+				return true;
+			}
+		0x9D =>
+			if size >= 3 {
+				*output = input[2] as i32;
+				return true;
+			}
+		_ =>
+			if identifier < PACKET_SIZES.len() as u8 {
+				*output = PACKET_SIZES[identifier as usize] as i32;
+				return *output != 0;
+			}
+	}
+	*output = 0;
+	return false;
 }

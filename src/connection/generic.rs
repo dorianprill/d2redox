@@ -27,12 +27,6 @@ const PORTS: [u16; 2] = [6112, 4000];
 // BNCS: the battle.net chat server
 // Realm: (also called MCP)
 // D2GS:  The diablo2 game server protocol
-enum ProtocolState {
-    Undefined,
-    BNCS,
-    Realm,
-    D2GS
-}
 
 pub struct Connection {
     interface:      NetworkInterface,
@@ -206,18 +200,19 @@ impl Connection {
                 IpNextHeaderProtocols::Tcp => {
                     self.handle_tcp_packet(source, destination, packet)
                 }
-                _ => println!(
-                    "[{}]: Unhandled {} packet: {} > {}; protocol: {:?} length: {}",
-                    interface_name,
-                    match source {
-                        IpAddr::V4(..) => "IPv4",
-                        _ => "IPv6",
-                    },
-                    source,
-                    destination,
-                    protocol,
-                    packet.len()
-                ),
+                _ => (),
+                // _ => println!(
+                //     "[{}]: Unhandled {} packet: {} > {}; protocol: {:?} length: {}",
+                //     interface_name,
+                //     match source {
+                //         IpAddr::V4(..) => "IPv4",
+                //         _ => "IPv6",
+                //     },
+                //     source,
+                //     destination,
+                //     protocol,
+                //     packet.len()
+                // ),
             }
         }
 

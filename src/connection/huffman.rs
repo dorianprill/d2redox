@@ -138,44 +138,52 @@ pub fn decompress(input: &[u8], output: &mut [u8]) {
     let mut size        = input.len();
     let mut b: usize    = 0;
     let mut i: usize    = 0;
-    let mut j: usize    = 0;
-    let mut max: usize  = result.len();
-    let mut count: u32  = 0x20;
+    let mut max: usize  = result.capacity(); // available storage indicator
+    let mut count: i32  = 0x20;
 
     loop {
-        let mut a: usize = 0;
+        let mut a: usize;
         if count >= 8 {
             while size > 0 && count >= 8 {
                 count -= 8;
                 size -= 1;
-                a = input[i] as usize;
-                a = a << count;
-                i += 1;
+                a = (input[i] as usize)  << count as i32;
                 b |= a;
+                i+=1;
             }
         }
-
+        dbg!(b); dbg!(b >> 0x18);
         let index = INDEX_TABLE[b >> 0x18] as usize;
         let mut a = CHARACTER_TABLE[index] as usize;
-        let d = (b >> (0x18 - a)) & BIT_MASKS[a] as usize;
-        let c = CHARACTER_TABLE[index + 2 * d + 2] as u32;
+        let     d = (b >> (0x18 - a)) & BIT_MASKS[a] as usize;
+        let     c = CHARACTER_TABLE[index + 2 * d + 2] as u32;
 
-        count += c;
+        count += c as i32;
         if count > 0x20 {
-            let actual = result.len() - max;
-            result[..actual].clone_from_slice(output);
+            output.copy_from_slice(result.as_slice());
             return;
         }
 
         max -= 1;
         if max == 0 {
+            // double available capacity
             let len = result.len()*2;
             result.resize(len, 0);
         }
         a = CHARACTER_TABLE[index + 2 * d + 1] as usize;
-        result[j] = a as u8;
-        j += 1;
+
+        result.push(a as u8);
 
         b <<= c & 0xFF;
     }
+}
+
+pub fn get_chunk_params(raw: &[u8], header_size: &mut usize) -> usize {
+    if raw[0] < 0xF0 {
+        *header_size = 1 as usize;
+        return raw[0] as usize - 1;
+    }
+    *header_size = 2;
+    // only bottom 3 nibbles due to header offset (-2)?
+    return ( (( (raw[0] as u16) << 8) | raw[1] as u16) & 0xFFF ) as usize
 }
