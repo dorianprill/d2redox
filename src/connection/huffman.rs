@@ -185,5 +185,6 @@ pub fn get_chunk_params(raw: &[u8], header_size: &mut usize) -> usize {
     }
     *header_size = 2;
     // only bottom 3 nibbles due to header offset (-2)?
-    return ( (( (raw[0] as u16) << 8) | raw[1] as u16) & 0xFFF ) as usize
+    let len = ((raw[0] as u16) & 0x0F) << 8;
+    return  (len | (raw[1] as u16)) as usize + 2
 }

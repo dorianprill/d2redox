@@ -19,12 +19,12 @@ impl AsBytes for D2GSPacket {
 
 impl fmt::Display for D2GSPacket {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "Values:\n")?;
 		let id: MessageId = unsafe { ::std::mem::transmute(self.packet_id()) };
-		write!(f, "{} (0x{}) Payload: , ", id, self.packet_id())?;
+		write!(f, "{} (0x{:02X}): [", id, self.packet_id())?;
         for v in &self.data {
-            write!(f, "{}, ", v)?;
+            write!(f, "{:02X},", v)?;
         }
+		write!(f, "]")?;
         Ok(())
     }
 }

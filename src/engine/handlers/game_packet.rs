@@ -32,7 +32,7 @@ pub enum MessageId {
     PlayerLeft      = 0x5C,
     NPCMoveEntity   = 0x68, // ?
     NPCStateUpdate  = 0x69, // ?
-    NPCMoveStop     = 0x6D, // in game i only ever see these received
+    NPCMoveStop     = 0x6D,
     MercUpdate      = 0x81,
     PortalUpdate    = 0x82,
     // not sure why there are two types for hp/mp update
@@ -115,6 +115,7 @@ pub fn game_packet_dispatch(packet: &D2GSPacket) {
         MessageId::PlayerReassign  	=> (),
         MessageId::ChatMessage     	=> chat_event_handler(packet),
         MessageId::NPCTransaction  	=> (),
+        MessageId::NPCMoveStop      => println!("{}", packet),
         MessageId::EventMessage    	=> (),
         MessageId::LifeManaUpdate1
             | MessageId::LifeManaUpdate2

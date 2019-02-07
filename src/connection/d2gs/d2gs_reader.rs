@@ -4,19 +4,33 @@ use engine::handlers::game_packet::game_packet_dispatch;
 
 use std::collections::VecDeque;
 
-const PACKET_SIZES: [u16; 177] = [
-			1, 8, 1, 12, 1, 1, 1, 6, 6, 11, 6, 6, 9, 13, 12, 16,
-			16, 8, 26, 14, 18, 11, 0, 0, 15, 2, 2, 3, 5, 3, 4, 6,
-			10, 12, 12, 13, 90, 90, 0, 40, 103,97, 15, 0, 8, 0, 0, 0,
-			0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 34, 8,
-			13, 0, 6, 0, 0, 13, 0, 11, 11, 0, 0, 0, 16, 17, 7, 1,
-			15, 14, 42, 10, 3, 0, 0, 14, 7, 26, 40, 0, 5, 6, 38, 5,
-			7, 2, 7, 21, 0, 7, 7, 16, 21, 12, 12, 16, 16, 10, 1, 1,
-			1, 1, 1, 32, 10, 13, 6, 2, 21, 6, 13, 8, 6, 18, 5, 10,
-			4, 20, 29, 0, 0, 0, 0, 0, 0, 2, 6, 6, 11, 7, 10, 33,
-			13, 26, 6, 8, 0, 13, 9, 1, 7, 16, 17, 7, 0, 0, 7, 8,
-			10, 7, 8, 24, 3, 8, 0, 7, 0, 7, 0, 7, 0, 0, 0, 0,
-			1 ];
+const PACKET_SIZES: [i32; 177] = [
+			// 1, 8, 1, 12, 1, 1, 1, 6, 6, 11, 6, 6, 9, 13, 12, 16,
+			// 16, 8, 26, 14, 18, 11, 0, 0, 15, 2, 2, 3, 5, 3, 4, 6,
+			// 10, 12, 12, 13, 90, 90, 0, 40, 103,97, 15, 0, 8, 0, 0, 0,
+			// 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 34, 8,
+			// 13, 0, 6, 0, 0, 13, 0, 11, 11, 0, 0, 0, 16, 17, 7, 1,
+			// 15, 14, 42, 10, 3, 0, 0, 14, 7, 26, 40, 0, 5, 6, 38, 5,
+			// 7, 2, 7, 21, 0, 7, 7, 16, 21, 12, 12, 16, 16, 10, 1, 1,
+			// 1, 1, 1, 32, 10, 13, 6, 2, 21, 6, 13, 8, 6, 18, 5, 10,
+			// 4, 20, 29, 0, 0, 0, 0, 0, 0, 2, 6, 6, 11, 7, 10, 33,
+			// 13, 26, 6, 8, 0, 13, 9, 1, 7, 16, 17, 7, 0, 0, 7, 8,
+			// 10, 7, 8, 24, 3, 8, 0, 7, 0, 7, 0, 7, 0, 0, 0, 0,
+			// 1 ];
+
+			1, 9, 1, 12, 1, 1, 1, 6, 6, 11, 6, 6, 9, 13, 12, 16,
+/* 1 */		16, 8, 26, 14, 18, 11, -1, -1, 15, 2, 2, 3, 5, 3, 4, 6,
+/* 2 */		10, 12, 12, 13, 90, 90, -1, 40, 103, 97, 15, 0, 8, 0, 0, 0,
+/* 3 */		0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 34, 8,
+/* 4 */		13, 0, 6, 0, 0, 13, 0, 11, 11, 0, 0, 0, 16, 17, 7, 1,
+/* 5 */		15, 14, 42, 10, 3, 0, 0, 14, 7, 26, 40, -1, 5, 6, 38, 5,
+/* 6 */		7, 2, 7, 21, 0, 7, 7, 16, 21, 12, 12, 16, 16, 10, 1, 1,
+/* 7 */		1, 1, 1, 32, 10, 13, 6, 2, 21, 6, 13, 8, 6, 18, 5, 10,
+/* 8 */		4, 20, 29, 0, 0, 0, 0, 0, 0, 2, 6, 6, 11, 7, 10, 33,
+/* 9 */		13, 26, 6, 8, -1, 13, 9, 1, 7, 16, 17, 7, -1, -1, 7, 8,
+/* A */		10, 7, 8, 24, 3, 8, -1, 7, -1, 7, -1, 7, -1, 0, -1, 0,
+/* B */		1 ];
+
 
 pub struct D2GSReader {
     // used as a single ended queue here
@@ -48,8 +62,6 @@ impl D2GSReader {
     /// message_size does include itself
     /// One compressed package will decode into several uncompressed ones
     pub fn read(&mut self, raw: &[u8]) {
-
-
 		// else is compressed packet
 		let mut decompressed_chunk = Vec::with_capacity(raw.len());
 		let mut start: 		usize = 0;
@@ -59,20 +71,38 @@ impl D2GSReader {
 
 		while (start + nheader + ndata) < raw.len() {
 
-			// check packet validity
+			// is invalid packet
 			if raw[start..].len() < 2 || (raw[start] >= 0xF0 && raw[start..].len() < 3) {
 				println!("D2GSReader::read(): input too short");
+				dbg!(ndata);
+				dbg!(nheader);
+				dbg!(raw[start..].len());
+				dbg!(raw.len());
+				dbg!(raw[0]);
 				return
 			}
 
+			// is plain packet
+			if raw[start] < 0xF0 {
+				self.packets.push_back(D2GSPacket{data: raw.to_vec()});
+				return
+			}
+
+			// else is compressed packet
 			ndata = huffman::get_chunk_params(&raw[start..], &mut nheader);
 			if ndata > raw[start..].len() {
 				// something went wrong
 				println!("D2GSReader::read(): invalid chunk params");
+				dbg!(ndata);
+				dbg!(nheader);
+				dbg!(raw[start..].len());
+				dbg!(raw.len());
+				dbg!(raw[0]);
 	            return
 			}
+			// index needs -1 since start is already header[0]?
 			end = start+nheader+ndata;
-			huffman::decompress(&raw[start..end], &mut decompressed_chunk);
+			huffman::decompress(&raw[start+nheader..end], &mut decompressed_chunk); // ..end not included!
 			start = end+1; // proceed with next chunk
 			while decompressed_chunk.len() > 0 {
 				let mut actual_size: i32 = 0;
