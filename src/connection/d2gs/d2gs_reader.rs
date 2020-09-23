@@ -102,6 +102,7 @@ impl D2GSReader {
 			}
 			// index needs -1 since start is already header[0]?
 			end = start+nheader+ndata;
+			dbg!(end);
 			huffman::decompress(&raw[start+nheader..end], &mut decompressed_chunk); // ..end not included!
 			start = end+1; // proceed with next chunk
 			while decompressed_chunk.len() > 0 {

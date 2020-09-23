@@ -8,7 +8,7 @@
 // Then hands them over to the appropriate handling procedures.
 // WIP currently, ultimate goal would be enabling clientless botting
 
-
+#![allow(dead_code)]
 
 mod client;
 mod connection;
