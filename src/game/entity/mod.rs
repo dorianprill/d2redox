@@ -5,7 +5,7 @@ pub mod mercenary;
 
 
 #[allow(dead_code)]
-pub enum EntityType {
+pub enum Entity {
     Player      = 0x00,
     NPC         = 0x01, // NPC, Mercenary, Monster
     WorldEntity = 0x02, //Stash, Waypoint, Chests, Portals, others.

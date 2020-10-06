@@ -1,51 +1,47 @@
 use std::fmt;
 //use std::convert::From;
-use engine::handlers::game_event::*;
+//use engine::handlers::game_event::*;
 use connection::d2gs::d2gs_packet::D2GSPacket;
-/// Server->Client MessageId is determined by the first byte of its content i.e. packet[0]
+
+pub enum GamePacketId {
+    ClientPacketId,
+    ServerPacketId
+}
+
+impl fmt::Display for GamePacketId {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
+/// D2 Game Client Message Identifiers
+/// Naming shall follow bnetdocs.org naming unless shown to be inappropriate
+/// Server->Client ClientPacketId is determined by the first byte of a D2GSPacket's data
+/// The specific arguments argument a packet takes is defined in the respective packet builders
 #[allow(dead_code)]
 #[repr(u8)]
-pub enum MessageId {
-    GameLoading             = 0x00,
-    GameLogonReceipt        = 0x01,
-    GameLogonSuccess        = 0x02,
-    ActDataLoad             = 0x03,
-    ActDataComplete         = 0x04,
-    UnloadDone              = 0x05,
-    GameLogoutSuccess       = 0x06,
-    MapAdd                  = 0x07,
-    MapRemove               = 0x08,
-    AssignWarp              = 0x09,
-    RemoveGroundUnit        = 0x0A,
-    GameHandshake           = 0x0B,
-    NpcUpdate               = 0x0C,
-    PlayerStop              = 0x0D,
-    GameObjectModeUpdate    = 0x0E,
-    PlayerMove              = 0x0F,
-    PlayerMoveToUnit        = 0x10,
+pub enum ServerPacketId {
+    
+    CharToObj               = 0x10,
     ReportKill              = 0x11,
 
     SetGameObjectMode       = 0x14,
     PlayerReassign          = 0x15, // this is used for self sent chat packets!?
 
     LifeManaUpdate1         = 0x18, //TODO: GS: 15   18 5d 00 16 80 21 40 0b c0 f1 b1 a8 f0 ff 07
-    SmallGoldAdd            = 0x19,
-    Experience1             = 0x1A,
-    Experience2             = 0x1B,
-    Experience3             = 0x1C,
-    AttributeByte           = 0x1D,
-    AttributeWord           = 0x1E,
-    AttributeDWord          = 0x1F,
+    SmallGoldPickup         = 0x19,
+    SetByteAttr             = 0x1D,
+    SetWordAttr             = 0x1E,
+    SetDWordAttr            = 0x1F,
     StateNotification       = 0x20,
     UpdatePlayerSkill       = 0x21,
     UpdatePlayerItemSkill   = 0x22,
     PlayerAssignSkill       = 0x23,
 
-    ChatMessage             = 0x26, // or is it Game message/announcement?
-    NPCInteraction          = 0x27, //TODO: parse Merc Info, split in two classes / events: TownFolkInteract and MercInfo.
-    PlayerQuestInfo         = 0x28,
-    UpdateGameQuestLog      = 0x29,
-    TransactionComplete     = 0x2A,
+    NPCInteraction          = 0x27, // TODO: parse Merc Info, split in two classes / events: TownFolkInteract and MercInfo.
+    UpdateQuestsInfo        = 0x28,
+    GameQuestsInfo          = 0x29,
+    TradeResult             = 0x2A,
 
     PlaySound               = 0x2C,
     UpdateContainerItem     = 0x3E,
@@ -63,7 +59,7 @@ pub enum MessageId {
     // the Horadric Cube item window, and the Stash window.
     // see https://bnetdocs.org/packet/98/d2gs-trade
     Trade                   = 0x4F,
-    //UNKOWN			      = 0x50,	//TODO: length = 15
+    QuestSpecial			= 0x50,	//TODO: length = 15
     WorldObject             = 0x51,
     PlayerQuestLog          = 0x52, //TODO: figure out state values...
     PartyRefresh            = 0x53,
@@ -71,9 +67,10 @@ pub enum MessageId {
     PlayerAssign            = 0x59, // Server->Client
     PlayerInformation       = 0x5A,
     PlayerJoined            = 0x5B,
-    PlayerLeft              = 0x5C,
-    //UNKOWN				  = 0x5D,	//TODO: length = 6
-    //UnknownGame			  = 0x5E,
+    StartGame               = 0x5C, // This packet is part of the logon sequence, not to be confused with the other 0x5C. This packet is originally received compressed, so the message ID will correspond with [Protocol Headers] D2GS compressed format. This message is received with the 'OK' that you can go ahead and enter the gaming environment.
+    
+    QuestItemState			= 0x5D,	// TODO: length = 6
+    GameQuestAvailability   = 0x5E, // TODO
     //UnknownGame			  = 0x5F,	//TODO: Part of join data, after GameHandshake... 5f 01 00 00 00
 
     PortalInfo              = 0x60,
@@ -132,117 +129,167 @@ pub enum MessageId {
     NpcAssignment           = 0xAC,
 
     WardenScan              = 0xAE,
+    NegotiateCompression    = 0xAF, // The compression mode is one of: 0x81 : custom compression mode, data follows (unused) 0x01 : compression enabled, use default compression 0x00 : no compression (unused). In practice the server ALWAYS uses compression.
 
     GameOver                = 0xB0,
     Invalid                 = 0xB1,
+}
 
-    Wrapper                 = 0xF0,
+impl fmt::Display for ServerPacketId {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let print = match *self {
+            ServerPacketId::SetWordAttr => "SetWordAttr",
+            _ => "UnknownServerPacketId"
+        };
+        write!(f, "{}", print)
+    }
+}
+/// D2 Game Client Message Identifiers
+/// Naming shall follow bnetdocs.org naming unless shown to be inappropriate
+/// Server->Client ClientPacketId is determined by the first byte of a D2GSPacket's data
+/// The specific arguments argument a packet takes is defined in the respective packet builders
+#[allow(dead_code)]
+#[repr(u8)]
+pub enum ClientPacketId {
+    GameLoading             = 0x00,
+    WalkToLocation          = 0x01, // Walk to a specified (X,Y) map coordinate
+    WalkToEntity            = 0x02, // Makes your character walk to the Entity specified in Entity ID
+    RunToLocation           = 0x03, // Run to a specified (X,Y) map coordinate
+    RunToEntity             = 0x04, // Makes your character run to the Entity specified in Entity ID
+    LeftSkillOnLocation     = 0x05, // Uses Left skill on specified (X,Y) map coordinate
+    LeftSkillOnEntity       = 0x06, // Uses your left skill on the Entity specefied in Entity ID
+    LeftSkillOnEntityEx     = 0x07, // Uses your left skill on the Entity specefied in Entity ID, while holding the hotkey for standing still(shift).
+    LeftSkillOnLocationEx   = 0x08, // Uses Left skill on specified (X,Y) map coordinate. This packet is sent repeatedly when the mouse button is held down after the initial packet has been sent. 
+    LeftSkillOnEntityEx2    = 0x09, // Uses your left skill on the Entity specified in Entity ID
+    LeftSkillOnEntityEx3    = 0x0A, // Uses your left skill on the Entity specefied in Entity ID, while holding the hotkey for standing still(shift). This packet is sent repeatedly when the mouse button is held down after the initial packet has been sent. 
+    GameHandshake           = 0x0B,
+    RightSkillOnLocation    = 0x0C, // Uses the currently selected skill at the specified location
+    RightSkillOnEntity      = 0x0D, // Uses your right skill on the Entity specefied in Entity ID
+    RightSkillOnEntityEx    = 0x0E, // Uses your right skill on the Entity specefied in Entity ID, while holding the hotkey
+    RightSkillOnLocationEx  = 0x0F, // Uses the currently selected skill at the specified location
+    RightSkillOnEntityEx2   = 0x10, // Uses your right skill repeatedly on the Entity specified in Entity ID
+    RightSkillOnEntityEx3   = 0x11, // Uses your right skill on the Entity specefied in Entity ID, while holding the hotkey
+    
+    InteractWithEntity      = 0x13, // Interacts with the specified Entity
+    OverheadMessage         = 0x14, // This message is used when you'd like to put a message above a character's head
+    PlayerReassign          = 0x15, // TODO: this is used for self sent chat packets!?
+    PickupItem              = 0x16, // Pick up a ground item to cursor buffer/inventory
+    DropItem                = 0x17, // Drops the item in the player's cursor buffer to the ground
+    ItemToBuffer            = 0x18, // Moves item form the player's cursor buffer to an inventory space (should'nt it be name FromBuffer?)
+    PickupBufferItem        = 0x19, // Pickup an item from the possible buffers below, moving it to the cursor buffer
+    ItemToBody              = 0x1A, // Moves item from player's cursor buffer to body location
+    Swap2HandedItem         = 0x1B, // Moves item from body location to player's cursor buffer
+    PickupBodyItem          = 0x1C, // Pickup an item from a Body Location to you're cursor buffer
+    SwitchBodyItem          = 0x1D, // Swaps item in player's cursor buffer with item in the body location
+    
+    UseItem                 = 0x20, // Uses the specified item (such as a potion, town portal, etc)
+    StackItem               = 0x21, // Stacks one item such as a key onto another item
+    RemoveStackItem         = 0x22, // DEPRECATED
+    ItemToBelt              = 0x23, // Moves an item into the player's belt
+    RemoveBeltItem          = 0x24, // Moves the specified item from the belt to the player's cursor buffer
+    SwitchBeltItem          = 0x25, // Replaces item in belt with item in player's cursor buffer
+    UseBeltItem             = 0x26, // Uses the specified item in the player's belt.
+    
+    InsertSocketItem        = 0x28, // Inserts the specified item into a socketed item
+    ScrollToTome            = 0x29, // Places a scroll into a tome of scrolls
+    ItemToCube              = 0x2A, // Moves item from player's cursor buffer into Horadric cube
+    
+    UnselectObj             = 0x2D, // DEPRECATED
+    NpcInit                 = 0x2F, // Initiate an NPC sesstion, sent following: C->S 0x13 It indicates that you are now interacting with an NPC, and a dialog window is opened. This is prior to any choices being made to talk or trade etc.
+    NpcCancel               = 0x30, // Stops interacting with an NPC 
+
+    NpcBuy                  = 0x32, // Buys an item from a Non Player Character
+    NpcSell                 = 0x33, // Sell an item to a Non Player Character
+    NpcTrade                = 0x38, // This packet's use is currently unconfirmed (bnetdocs)
+
+    CharacterPhrase         = 0x3F, // All phrases sent to the server will be heard by all players in your vicinity
+
+    Waypoint                = 0x49, // Requests to go to a waypoint if it was already activated
+
+    // This message should be used for manipulating the trading window,
+    // the Horadric Cube item window, and the Stash window.
+    // see https://bnetdocs.org/packet/98/d2gs-trade
+    Trade                   = 0x4F,
+    DropGold			    = 0x50,	// Drops a pile of gold to the ground
+    
+    Party			        = 0x5E, // Possible Action IDs: 0x06 - Invite player to party with you 0x07 - Cancel invite to player 0x08 - Accept invite from player 0x09 - Leave party
+
+    PortalInfo              = 0x60,
+    PotionMercenary         = 0x61, // Takes the potion your cursor holds and gives it to the mercenary
+
+    GameCreate              = 0x67, // Replaces 0x67 D2BS_GAMELOGON when creating a new Solo Player, Open Battle.net or TCP/IP
+    GameLogon               = 0x68, // In Kolbot, sent between "Heartbeat loaded" & "Starting default.dbj"
+    EnterGameEnvironment    = 0x69, // This byte should be sent in order to start receiving in-game messages and to interact with the world itself. 
+
+    Ping                    = 0x6D, // This packet should be sent every five to seven seconds to avoid timeout
 
 }
 
 
-impl fmt::Display for MessageId {
+impl fmt::Display for ClientPacketId {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let print = match *self {
-			MessageId::GameLoading              => "GameLoading",
-		    MessageId::GameLogonReceipt         => "GameLogonReceipt",
-		    MessageId::GameLogonSuccess         => "GameLogonSuccess",           
-            MessageId::ActDataLoad              => "ActDataLoad",
-            MessageId::ActDataComplete          => "ActDataComplete",
-            MessageId::UnloadDone               => "UnloadDone",
-            MessageId::GameLogoutSuccess        => "GameLogoutSuccess",
-            MessageId::MapAdd                   => "MapAdd",
-            MessageId::MapRemove                => "MapRemove",
-            MessageId::AssignWarp               => "AssignWarp",
-            MessageId::RemoveGroundUnit         => "RemoveGroundUnit",
-            MessageId::GameHandshake            => "GameHandshake",
-            MessageId::NpcUpdate                => "NpcUpdate",
-            MessageId::PlayerStop               => "PlayerStop",
-            MessageId::GameObjectModeUpdate     => "GameObjectModeUpdate",
-            MessageId::PlayerMove               => "PlayerMove",
-            MessageId::PlayerMoveToUnit         => "PlayerMoveToUnit",
-            MessageId::ReportKill               => "ReportKill",
-            MessageId::SetGameObjectMode        => "SetGameObjectMode",
-            MessageId::PlayerReassign           => "PlayerReassign",
-            MessageId::LifeManaUpdate1 	        => "LifeManaUpdate1",
-            MessageId::SmallGoldAdd             => "SmallGoldAdd",
-		    MessageId::Experience1              => "Experience1",
-		    MessageId::Experience2              => "Experience2",
-            MessageId::Experience3              => "Experience3",
-            MessageId::AttributeByte            => "AttributeByte",
-            MessageId::AttributeWord            => "AttributeWord",
-            MessageId::AttributeDWord           => "AttributeDWord",
-            MessageId::StateNotification        => "StateNotification",
-            MessageId::UpdatePlayerSkill        => "UpdatePlayerSkill",
-            MessageId::UpdatePlayerItemSkill    => "UpdatePlayerItemSkill",
-            MessageId::PlayerAssignSkill        => "PlayerAssignSkill", 
-            MessageId::ChatMessage              => "ChatMessage",
-            MessageId::NPCInteraction           => "NPCInteraction",
-            MessageId::PlayerQuestInfo          => "PlayerQuestInfo",
-            MessageId::UpdateGameQuestLog       => "UpdateGameQuestLog",
-            MessageId::TransactionComplete      => "TransactionComplete",
-            MessageId::PlaySound                => "PlaySound",
-            MessageId::UpdateContainerItem      => "UpdateContainerItem",
-            MessageId::UseStackableItem         => "UseStackableItem",
-            MessageId::PlayerClearCursor        => "PlayerClearCursor",
-            MessageId::Relator1                 => "Relator1",
-            MessageId::Relator2                 => "Relator2",
-            MessageId::UnitUseSkillOnTarget     => "UnitUseSkillOnTarget",
-            MessageId::UnitUseSkill             => "UnitUseSkill",
-            MessageId::MercForHire              => "MercForHire",
-		    MessageId::Trade           	        => "Trade",
-            MessageId::WorldObject     	        => "WorldObject",
-            MessageId::PlayerQuestLog           => "PlayerQuestLog", //TODO: figure out state values...
-            MessageId::PartyRefresh             => "PartyRefresh",
-		    MessageId::PlayerAssign             => "PlayerAssign",
-		    // e.g. 4711 Stones of Jordan Sold to Merchants
-		    MessageId::PlayerInformation        => "PlayerInformation",
-		    MessageId::PlayerJoined    	        => "PlayerJoined",
-            MessageId::PlayerLeft      	        => "PlayerLeft",
-            MessageId::PortalInfo               => "PortalInfo",
-            MessageId::OpenWaypoint             => "OpenWaypoint",
-            MessageId::PlayerKillCount          => "PlayerKillCount",
-            MessageId::NpcMoveStart 	        => "NPCMoveStart",
-		    MessageId::NpcMoveToTarget 	        => "NPCMoveEntity",
-            MessageId::NpcStateUpdate  	        => "NPCStateUpdate",
-            MessageId::NpcAction                => "NPCAction",
-            MessageId::NpcAttack                => "NPCAttack",
-            MessageId::NpcMoveStop     	        => "NPCMoveStop",
-            MessageId::AboutPlayer              => "AboutPlayer",
-            MessageId::OverHeadClear            => "OverHeadClear",
-            MessageId::UpdateItemUI             => "UpdateItemUI",
-            MessageId::TradeAccept              => "TradeAccept",
-            MessageId::TradeGold                => "TradeGold",
-            MessageId::SummonAction             => "SummonAction",
-            MessageId::AssignSkillHotkey        => "AssignSkillHotkey",
-            MessageId::UseSpecialItem           => "UseSpecialItem",	 //TODO: Only type 4 : Identify / portal tome / scroll is known
-            MessageId::PartyMemberUpdate        => "PartyMemberUpdate",
-		    MessageId::MercUpdate      	        => "MercUpdate",
-            MessageId::PortalUpdate    	        => "PortalUpdate",
-            MessageId::NpcWantsInteract         => "NpcWantsInteract",
-            MessageId::PlayerPartyRelation      => "PlayerPartyRelation",
-            MessageId::PlayerRelation           => "PlayerRelation",
-            MessageId::AssignPlayerToParty      => "AssignPlayerToParty",
-            MessageId::CorpseAssign             => "CorpseAssign",
-            MessageId::Pong                     => "Pong",
-            MessageId::PartyMemberPulse         => "PartMemberPulse",
-		    MessageId::SkillsLog                => "SkillsLog",
-            MessageId::PlayerLifeManaChange     => "PlayerLifeManaChange", // not sure why there are two types for hp/mp update (0x18 and 0x95)
-            MessageId::WalkVerify               => "WalkVerify",
-		    MessageId::ItemWorldAction          => "ItemWorldAction",
-            MessageId::ItemOwnedAction          => "ItemOwnedAction",
-            MessageId::MercAttributeByte        => "MercAttributeByte",
-            MessageId::MercAttributeWord        => "MercAttributeWord",
-            MessageId::MercAttributeDWord       => "MercAttributeDWord",
-            MessageId::DelayedState   	        => "DelayedState",
-            MessageId::SetState                 => "SetState",
-            MessageId::EndState                 => "EndState",
-            MessageId::AddUnit                  => "AddUnit",
-            MessageId::NpcHeal                  => "NpcHeal",
-		    MessageId::NpcAssignment   	        => "NPCAssignment",
-		    // warden should'nt find anything since we're not modifying game memory :)
-		    MessageId::WardenScan               => "WardenScan",
-			_							        => "UnknownMessageId"
+			ClientPacketId::GameLoading              => "GameLoading",
+		    ClientPacketId::WalkToLocation           => "WalkToLocation",
+		    ClientPacketId::WalkToEntity             => "WalkToEntity",           
+            ClientPacketId::RunToLocation            => "RunToLocation",
+            ClientPacketId::RunToEntity              => "RunToEntity",
+            ClientPacketId::LeftSkillOnLocation      => "LeftSkillOnLocation",
+            ClientPacketId::LeftSkillOnEntity        => "LeftSkillOnEntity",
+            ClientPacketId::LeftSkillOnEntityEx      => "LeftSkillOnEntityEx",
+            ClientPacketId::LeftSkillOnLocationEx    => "LeftSkillOnLocationEx",
+            ClientPacketId::LeftSkillOnEntityEx2     => "LeftSkillOnEntityEx2",
+            ClientPacketId::LeftSkillOnEntityEx3     => "LeftSkillOnEntityEx3",
+            ClientPacketId::GameHandshake            => "GameHandshake",
+            ClientPacketId::RightSkillOnLocation     => "RightSkillOnLocation",
+            ClientPacketId::RightSkillOnEntity       => "RightSkillOnEntity",
+            ClientPacketId::RightSkillOnEntityEx     => "RightSkillOnEntityEx",
+            ClientPacketId::RightSkillOnLocationEx   => "RightSkillOnLocationEx",
+            ClientPacketId::RightSkillOnEntityEx2    => "RightSkillOnEntityEx2",
+            ClientPacketId::RightSkillOnEntityEx3    => "RightSkillOnEntityEx3",
+            ClientPacketId::InteractWithEntity       => "InteractWithEntity",
+            ClientPacketId::OverheadMessage          => "OverheadMessage",
+            ClientPacketId::PlayerReassign           => "PlayerReassign",
+            ClientPacketId::PickupItem               => "PickupItem",
+            ClientPacketId::DropItem                 => "DropItem", 
+            ClientPacketId::ItemToBuffer             => "ItemToBuffer",
+            ClientPacketId::PickupBufferItem         => "PickupBufferItem",
+		    ClientPacketId::ItemToBody               => "ItemToBody",
+		    ClientPacketId::Swap2HandedItem          => "Swap2HandedItem",
+            ClientPacketId::PickupBodyItem           => "PickupBodyItem",
+            ClientPacketId::SwitchBodyItem            => "SwitchBodyItem",
+
+            ClientPacketId::UseItem                  => "UseItem",
+            ClientPacketId::StackItem                => "StackItem",
+            ClientPacketId::RemoveStackItem          => "RemoveStackItem",
+            ClientPacketId::ItemToBelt               => "ItemToBelt", 
+            ClientPacketId::RemoveBeltItem           => "RemoveBeltItem", 
+            ClientPacketId::SwitchBeltItem           => "SwitchBeltItem", 
+            ClientPacketId::UseBeltItem              => "UseBeltItem",
+
+            ClientPacketId::InsertSocketItem         => "InsertSocketItem",
+            ClientPacketId::ScrollToTome             => "ScrollToTome",
+            ClientPacketId::ItemToCube               => "ItemToCube",
+            ClientPacketId::UnselectObj              => "UnselectObj",
+            ClientPacketId::NpcInit                  => "NpcInit",
+            ClientPacketId::NpcCancel                => "NpcCancel",
+            ClientPacketId::NpcBuy                   => "NpcBuy",
+            ClientPacketId::NpcSell                  => "NpcSell",
+            ClientPacketId::NpcTrade                 => "NpcTrade",
+            ClientPacketId::CharacterPhrase          => "CharacterPhrase",
+            
+		    ClientPacketId::Trade           	     => "Trade",
+		    
+            ClientPacketId::PortalInfo               => "PortalInfo",
+            ClientPacketId::PotionMercenary          => "PotionMercenary", 
+
+            ClientPacketId::GameCreate               => "GameCreate", 
+            ClientPacketId::GameLogon                => "GameLogon", 
+            ClientPacketId::EnterGameEnvironment     => "EnterGameENvironment", 
+
+            ClientPacketId::Ping                     => "Ping",
+            
+			_							        => "UnknownClientPacketId"
         };
         write!(f, "{}", print)
     }
@@ -261,11 +308,11 @@ pub fn game_packet_dispatch(packet: &D2GSPacket) {
     // );
     // TODO how to get rid of this unsafe block without another humongous match{} ?
     // enum has #[repr(u8)] so should'nt be a problem...
-    let dispatch_id: MessageId = unsafe { ::std::mem::transmute(packet.packet_id()) };
+    let dispatch_id: ClientPacketId = unsafe { ::std::mem::transmute(packet.packet_id()) };
     match dispatch_id {
-        MessageId::ChatMessage     	=> chat_event_handler(packet),
-        // MessageId::LifeManaUpdate1
-        //     | MessageId::PlayerLifeManaChange
+        //ClientPacketId::OverheadMessage     	=> chat_event_handler(packet),
+        // ClientPacketId::LifeManaUpdate1
+        //     | ClientPacketId::PlayerLifeManaChange
         //                         	=> (),
         _ => println!("{}", packet),
     }

@@ -124,7 +124,7 @@ impl Connection {
 
 
 
-        fn handle_udp_packet(&mut self, source: IpAddr, destination: IpAddr, packet: &[u8]) {
+        fn handle_udp_packet(&mut self, _source: IpAddr, _destination: IpAddr, packet: &[u8]) {
             let udp = UdpPacket::new(packet);
 
             if let Some(udp) = udp {
@@ -136,7 +136,7 @@ impl Connection {
                     // game packet
                     4000 => self.d2gs_reader.read(udp.payload()),
                     // bncs/realm packet -> not implemented yet
-                    6112 => (),
+                    6112 => println!("Received Unhandled BNCS or Realm packet"),
                     _ => return,
                 }
                 // println!(
@@ -155,7 +155,7 @@ impl Connection {
         }
 
 
-        fn handle_tcp_packet(&mut self, source: IpAddr, destination: IpAddr, packet: &[u8]) {
+        fn handle_tcp_packet(&mut self, _source: IpAddr, _destination: IpAddr, packet: &[u8]) {
             let tcp = TcpPacket::new(packet);
             if let Some(tcp) = tcp {
                 // filter packet by ports used by d2, will continue for both sent & received
@@ -166,7 +166,7 @@ impl Connection {
                     // game packet
                     4000 => self.d2gs_reader.read(tcp.payload()),
                     // bncs/realm packet -> not implemented yet
-                    6112 => (),
+                    6112 => println!("Received Unhandled BNCS or Realm packet"),
                     _ => return,
                 }
                 // println!(
@@ -187,7 +187,7 @@ impl Connection {
 
         fn handle_transport_protocol(
             &mut self,
-            interface_name: &str,
+            _interface_name: &str,
             source:         IpAddr,
             destination:    IpAddr,
             protocol:       IpNextHeaderProtocol,

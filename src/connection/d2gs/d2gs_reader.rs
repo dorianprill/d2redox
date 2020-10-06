@@ -47,7 +47,7 @@ impl D2GSReader {
         return self.packets.pop_front();
     }
 
-    /// read() handles the D2GS packet compression
+    /// read() handles the D2GS packet decompression
     /// message size can be transmitted in either one u8 or two u8 as
     /// depdending on whether the first byte is >= 0xF0
     /// Message Layout:
@@ -67,7 +67,7 @@ impl D2GSReader {
 		let mut start: 		usize = 0;
 		let mut nheader: 	usize = 0;
 		let mut ndata: 		usize = 0;
-		let mut end:		usize = 0;
+		let mut end:		usize;
 
 		while (start + nheader + ndata) < raw.len() {
 
@@ -132,7 +132,7 @@ impl D2GSReader {
 
 // translated from OmegaBot
 pub fn get_chat_packet_size(input: &[u8], out: &mut i32) -> bool {
-	let mut output: i32 = 0;
+	//let mut output: i32 = 0;
 	if input.len() < 12 {
 		return false;
 	}
@@ -158,7 +158,7 @@ pub fn get_chat_packet_size(input: &[u8], out: &mut i32) -> bool {
 	}
 
 	message_offset = message_offset - INITIAL_OFFSET - name_offset -1;
-	output = INITIAL_OFFSET + name_offset + 1 + message_offset + 1;
+	*out = INITIAL_OFFSET + name_offset + 1 + message_offset + 1;
 
 	return true;
 }
