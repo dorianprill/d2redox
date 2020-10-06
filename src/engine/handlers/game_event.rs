@@ -1,4 +1,4 @@
-use std::str;
+//use std::str;
 
 use connection::d2gs::d2gs_packet::D2GSPacket;
 
