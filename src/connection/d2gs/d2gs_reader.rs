@@ -40,7 +40,7 @@ pub struct D2GSReader {
 impl D2GSReader {
 
     pub fn new() -> Self {
-        return D2GSReader{packets: VecDeque::new()};
+        return D2GSReader{packets: VecDeque::with_capacity(128)};
     }
 
 	pub fn next(&mut self) -> Option<D2GSPacket> {
@@ -131,7 +131,7 @@ impl D2GSReader {
 
 
 // translated from OmegaBot
-pub fn get_chat_packet_size(input: &[u8], out: &mut i32) -> bool {
+pub fn get_chat_packet_size(input: &[u8], result: &mut i32) -> bool {
 	//let mut output: i32 = 0;
 	if input.len() < 12 {
 		return false;
@@ -158,63 +158,64 @@ pub fn get_chat_packet_size(input: &[u8], out: &mut i32) -> bool {
 	}
 
 	message_offset = message_offset - INITIAL_OFFSET - name_offset -1;
-	*out = INITIAL_OFFSET + name_offset + 1 + message_offset + 1;
+	*result = INITIAL_OFFSET + name_offset + 1 + message_offset + 1;
+	dbg!(*result);
 
 	return true;
 }
 
 // This was taken from Redvex according to qqbot source
-pub fn get_packet_size(input: &[u8], output: &mut i32) -> bool {
+pub fn get_packet_size(input: &[u8], result: &mut i32) -> bool {
 	let identifier: u8 = input[0];
 	let size = input.len() as i32;
 
 	match identifier {
 		0x26 =>
-			if get_chat_packet_size(input, output ) {
+			if get_chat_packet_size(input, result ) {
 				return true;
 			}
 		0x5B =>
 			if size >= 3 {
-				*output = ((input[1] as i32) << 8) & input[2] as i32;
+				*result = ((input[1] as i32) << 8) & input[2] as i32;
 				return true;
 			}
 		0x94 =>
 			if size >= 2 {
-				*output = input[1] as i32 * 3 + 6;
+				*result = input[1] as i32 * 3 + 6;
 				return true;
 			}
 		0xA8
 		| 0xAA =>
 			if size >= 7 {
-				*output = input[6] as i32;
+				*result = input[6] as i32;
 				return true;
 			}
 		0xAC =>
 			if size >= 13 {
-				*output = input[12] as i32;
+				*result = input[12] as i32;
 				return true;
 			}
 		0xAE =>
 			if size >= 3 {
-				*output = 3 + ((input[1] as i32) << 8) & input[2] as i32;
+				*result = 3 + ((input[1] as i32) << 8) & input[2] as i32;
 				return true;
 			}
 		0x9C =>
 			if size >= 3 {
-				*output = input[2] as i32;
+				*result = input[2] as i32;
 				return true;
 			}
 		0x9D =>
 			if size >= 3 {
-				*output = input[2] as i32;
+				*result = input[2] as i32;
 				return true;
 			}
 		_ =>
 			if identifier < PACKET_SIZES.len() as u8 {
-				*output = PACKET_SIZES[identifier as usize] as i32;
-				return *output != 0;
+				*result = PACKET_SIZES[identifier as usize] as i32;
+				return *result != 0;
 			}
 	}
-	*output = 0;
+	*result = 0;
 	return false;
 }
