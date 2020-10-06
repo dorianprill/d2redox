@@ -137,28 +137,28 @@ pub fn get_chat_packet_size(input: &[u8], out: &mut i32) -> bool {
 		return false;
 	}
 
-	const initial_offset: i32 = 10;
+	const INITIAL_OFFSET: i32 = 10;
 	let mut name_offset: i32 = input
 						.iter()
-						.position(|&x| (x as i32) == initial_offset)
+						.position(|&x| (x as i32) == INITIAL_OFFSET)
 						.unwrap() as i32;
 
 	if name_offset == -1 {
 		return false;
 	}
-	name_offset -= initial_offset;
+	name_offset -= INITIAL_OFFSET;
 
 	let mut message_offset: i32 = input
 						.iter()
-						.position(|&x| (x as i32) == (initial_offset + name_offset + 1))
+						.position(|&x| (x as i32) == (INITIAL_OFFSET + name_offset + 1))
 						.unwrap() as i32;
 
 	if message_offset == -1 {
 		return false;
 	}
 
-	message_offset = message_offset - initial_offset - name_offset -1;
-	output = initial_offset + name_offset + 1 + message_offset + 1;
+	message_offset = message_offset - INITIAL_OFFSET - name_offset -1;
+	output = INITIAL_OFFSET + name_offset + 1 + message_offset + 1;
 
 	return true;
 }
