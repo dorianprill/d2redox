@@ -14,10 +14,11 @@ impl fmt::Display for GamePacketId {
     }
 }
 
-/// D2 Game Client Message Identifiers
+/// D2 Game Server Message Identifiers
 /// Naming shall follow bnetdocs.org naming unless shown to be inappropriate
 /// Server->Client ClientPacketId is determined by the first byte of a D2GSPacket's data
 /// The specific arguments argument a packet takes is defined in the respective packet builders
+#[derive(Debug)]
 #[allow(dead_code)]
 #[repr(u8)]
 pub enum ServerPacketId {
@@ -141,13 +142,14 @@ impl fmt::Display for ServerPacketId {
             ServerPacketId::SetWordAttr => "SetWordAttr",
             _ => "UnknownServerPacketId"
         };
-        write!(f, "{}", print)
+        write!(f, "{}: {}", self, print)
     }
 }
 /// D2 Game Client Message Identifiers
 /// Naming shall follow bnetdocs.org naming unless shown to be inappropriate
 /// Server->Client ClientPacketId is determined by the first byte of a D2GSPacket's data
 /// The specific arguments argument a packet takes is defined in the respective packet builders
+#[derive(Debug)]
 #[allow(dead_code)]
 #[repr(u8)]
 pub enum ClientPacketId {
@@ -291,29 +293,20 @@ impl fmt::Display for ClientPacketId {
             
 			_							        => "UnknownClientPacketId"
         };
-        write!(f, "{}", print)
+        write!(f, "{}: {}",self, print)
     }
 }
 
 
 /// Packet handler calls the corresponding event handler functions in game_event.rs
 pub fn game_packet_dispatch(packet: &D2GSPacket) {
-
-    // println!(
-    //     "recv d2gs packet len={:04} decompress={:?} {:x?}  {:?}",
-    //     which.len(),
-    //     decompress,
-    //     which,
-    //     String::from_utf8_lossy(which).into_owned()
-    // );
     // TODO how to get rid of this unsafe block without another humongous match{} ?
     // enum has #[repr(u8)] so should'nt be a problem...
-    let dispatch_id: ClientPacketId = unsafe { ::std::mem::transmute(packet.packet_id()) };
-    match dispatch_id {
+    //let dispatch_id: ClientPacketId = unsafe { ::std::mem::transmute(packet.packet_id()) };
+    //match dispatch_id {
         //ClientPacketId::OverheadMessage     	=> chat_event_handler(packet),
-        // ClientPacketId::LifeManaUpdate1
-        //     | ClientPacketId::PlayerLifeManaChange
-        //                         	=> (),
-        _ => println!("{}", packet),
-    }
+    //    ClientPacketId::Waypoint
+    //                             	=> (),
+    //    _ => println!("{}", packet),
+    //}
 }
