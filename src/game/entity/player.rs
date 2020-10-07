@@ -60,3 +60,17 @@ impl Player {
     }
 
 }
+
+
+pub enum PlayerItemSlot {
+    Helm            = 0x01,
+    Amulet          = 0x02,
+    Armor           = 0x03,
+    LeftWeapon      = 0x04,
+    RightWeapon     = 0x05,
+    LeftRing        = 0x06,
+    RightRing       = 0x07,
+    Belt            = 0x08,
+    Boots           = 0x09,
+    Gloves          = 0x0A
+}

@@ -6,8 +6,9 @@ use std::fmt;
 //use std::convert::From;
 //use engine::handlers::game_event::*;
 use connection::d2gs::d2gs_packet::D2GSPacket;
-use game::entity::{EntityType, EntityId};
-use game::object::item::ItemId;
+//use game::entity::{EntityType, EntityId};
+//use game::entity::player::PlayerItemSlot;
+//use game::object::item::{ItemId, Item, ItemBuffer, ItemBufferCoord};
 
 pub enum GamePacketId {
     ClientMessage,
@@ -218,18 +219,18 @@ pub enum ClientMessage {
     // Walk to a specified (X,Y) map coordinate
     WalkToLocation{x: u16, y: u16}              = 0x01, 
     // Makes your character walk to the Entity specified in Entity ID
-    WalkToEntity(EntityType, EntityId)          = 0x02, 
+    WalkToEntity{entity_type: u32, entity_id: u32}          = 0x02, 
     // Run to a specified (X,Y) map coordinate
     RunToLocation{x: u16, y: u16}               = 0x03, 
     // Makes your character run to the Entity specified in Entity ID
-    RunToEntity(EntityType, EntityId)           = 0x04, 
+    RunToEntity{entity_type: u32, entity_id: u32}           = 0x04, 
     // Uses Left skill on specified (X,Y) map coordinate
     LeftSkillOnLocation{x: u16, y: u16}         = 0x05, 
     // Uses your left skill on the Entity specefied in Entity ID
-    LeftSkillOnEntity(EntityType, EntityId)     = 0x06, 
+    LeftSkillOnEntity{entity_type: u32, entity_id: u32}     = 0x06, 
     // Uses your left skill on the Entity specefied in Entity ID, 
     // while holding the hotkey for standing still(shift).
-    LeftSkillOnEntityEx(EntityType, EntityId)   = 0x07, 
+    LeftSkillOnEntityEx{entity_type: u32, entity_id: u32}   = 0x07, 
     // Uses Left skill on specified (X,Y) map coordinate. 
     // This packet is sent repeatedly when the mouse button is held 
     // down after the initial packet has been sent. 
@@ -237,27 +238,27 @@ pub enum ClientMessage {
     // Uses your left skill on the Entity specified in Entity ID.
     // This packet is sent repeatedly when the mouse button is held 
     // down after the initial packet has been sent.
-    LeftSkillOnEntityEx2(EntityType, EntityId)  = 0x09, 
+    LeftSkillOnEntityEx2{entity_type: u32, entity_id: u32}  = 0x09, 
     // Uses your left skill on the Entity specefied in Entity ID, while holding 
     // the hotkey for standing still(shift). This packet is sent repeatedly 
     // when the mouse button is held down after the initial packet has been sent. 
-    LeftSkillOnEntityEx3(EntityType, EntityId)  = 0x0A, 
+    LeftSkillOnEntityEx3{entity_type: u32, entity_id: u32}  = 0x0A, 
     //GameHandshake           = 0x0B, // TODO server message?
     // Uses the currently selected skill at the specified location
     RightSkillOnLocation{x: u16, y: u16}        = 0x0C, 
     // Uses your right skill on the Entity specefied in Entity ID
-    RightSkillOnEntity(EntityType, EntityId)    = 0x0D, 
+    RightSkillOnEntity{entity_type: u32, entity_id: u32}    = 0x0D, 
     // Uses your right skill on the Entity specefied in Entity ID, while holding the hotkey
-    RightSkillOnEntityEx(EntityType, EntityId)  = 0x0E, 
+    RightSkillOnEntityEx{entity_type: u32, entity_id: u32}  = 0x0E, 
     // Uses the currently selected skill at the specified location
     RightSkillOnLocationEx{x: u16, y: u16}      = 0x0F, 
     // Uses your right skill repeatedly on the Entity specified in Entity ID
-    RightSkillOnEntityEx2(EntityType, EntityId) = 0x10, 
+    RightSkillOnEntityEx2{entity_type: u32, entity_id: u32} = 0x10, 
     // Uses your right skill on the Entity specefied in Entity ID, while holding the hotkey
-    RightSkillOnEntityEx3(EntityType, EntityId) = 0x11, 
+    RightSkillOnEntityEx3{entity_type: u32, entity_id: u32} = 0x11, 
     // Interacts with the specified Entity. For players and npc's, it will send a request to interact. 
     // The interaction depends on the type of the unit or object. For others it will trigger the object, for example using a shrine, looting a corpse you have permission to loot, or opening and closing a door.
-    InteractWithEntity(EntityType, EntityId)    = 0x13, 
+    InteractWithEntity{entity_type: u32, entity_id: u32}    = 0x13, 
     // This message is used when you'd like to put a message above a character's head.
     // Restrictions: 
     //   Total size of packet cannot be greater than 275 bytes. 
@@ -267,23 +268,36 @@ pub enum ClientMessage {
     //PlayerReassign          = 0x15, // TODO: server message?
     // Pick up a ground item to cursor buffer/inventory
     //PickupItem(UnitType: u32, UnitId: u32, ActionId: u32)      = 0x16, // TODO what unit types exist?
-    DropItem(ItemId)        = 0x17, // Drops the item in the player's cursor buffer to the ground
-    ItemToBuffer            = 0x18, // Moves item form the player's cursor buffer to an inventory space (should'nt it be name FromBuffer?)
-    PickupBufferItem        = 0x19, // Pickup an item from the possible buffers below, moving it to the cursor buffer
-    ItemToBody              = 0x1A, // Moves item from player's cursor buffer to body location
-    Swap2HandedItem         = 0x1B, // Moves item from body location to player's cursor buffer
-    PickupBodyItem          = 0x1C, // Pickup an item from a Body Location to you're cursor buffer
-    SwitchBodyItem          = 0x1D, // Swaps item in player's cursor buffer with item in the body location
-    
-    UseItem                 = 0x20, // Uses the specified item (such as a potion, town portal, etc)
-    StackItem               = 0x21, // Stacks one item such as a key onto another item
-    RemoveStackItem         = 0x22, // DEPRECATED
-    ItemToBelt              = 0x23, // Moves an item into the player's belt
-    RemoveBeltItem          = 0x24, // Moves the specified item from the belt to the player's cursor buffer
-    SwitchBeltItem          = 0x25, // Replaces item in belt with item in player's cursor buffer
-    UseBeltItem             = 0x26, // Uses the specified item in the player's belt.
-    
-    InsertSocketItem        = 0x28, // Inserts the specified item into a socketed item
+    // Drops the item in the player's cursor buffer to the ground
+    DropItem{item_id: u32} = 0x17,
+    // Moves item form the player's cursor buffer to an inventory space (should'nt it be name FromBuffer?)
+    ItemToBuffer{item_id: u32 , x: u32, y: u32, item_buffer: u32} = 0x18, 
+    // Pickup an item from the possible buffers below, moving it to the cursor buffer
+    PickupBufferItem{item_id: u32}                = 0x19, 
+    // Moves item from player's cursor buffer to body location
+    ItemToBody{item_id: u32, player_item_slot: u32} = 0x1A, 
+    // Moves item from body location to player's cursor buffer
+    Swap2HandedItem{item_id: u32, player_item_slot: u32} = 0x1B, 
+    // Pickup an item from a Body Location to you're cursor buffer
+    PickupBodyItem{player_item_slot: u16}     = 0x1C, 
+    // Swaps item in player's cursor buffer with item in the body location
+    SwitchBodyItem{item_id: u32, player_item_slot: u32}  = 0x1D, 
+    // Uses the specified item (such as a potion, town portal, etc)
+    UseItem{item_id: u32, x: u32, y: u32}                   = 0x20, 
+    // Stacks one item such as a key onto another item
+    StackItem{item_id: u32, item_id_target: u32}            = 0x21,
+    // DEPRECATED
+    RemoveStackItem{item_id: u32}                           = 0x22, 
+    // Moves an item into the player's belt
+    ItemToBelt{item_id: u32, belt_slot: u32}                = 0x23, 
+    // Moves the specified item from the belt to the player's cursor buffer
+    RemoveBeltItem{item_id: u32}                            = 0x24, 
+    // Replaces item in belt with item in player's cursor buffer
+    SwitchBeltItem{item_id_cursor: u32, item_id: u32}       = 0x25, 
+    // Uses the specified item in the player's belt.
+    UseBeltItem{item_id: u32, unknown: u32, unknown2: u32}  = 0x26, 
+    // Inserts the specified item into a socketed item
+    InsertSocketItem{socketable_item: u32, item_id: u32}    = 0x28, 
     ScrollToTome            = 0x29, // Places a scroll into a tome of scrolls
     ItemToCube              = 0x2A, // Moves item from player's cursor buffer into Horadric cube
     
@@ -390,7 +404,7 @@ pub enum ClientMessage {
 
 
 /// Packet dispatcher calls the corresponding event handler functions in reaction to a server message
-pub fn game_packet_dispatch(rcv_packet: &D2GSPacket) {
+pub fn game_packet_dispatch(_rcv_packet: &D2GSPacket) {
     // TODO how to get rid of this unsafe block without another humongous match{} ?
     // enum has #[repr(u8)] so should'nt be a problem...
     //let dispatch_id: ServerPacketId = unsafe { ::std::mem::transmute(rcv_packet.packet_id()) };
