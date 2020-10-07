@@ -1,2 +1,6 @@
 pub mod item;
-pub mod world_object;
+
+#[allow(dead_code)]
+pub struct WorldObject {
+
+}

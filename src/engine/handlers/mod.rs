@@ -1,2 +1,2 @@
-pub mod game_packet;
+pub mod packets;
 pub mod game_event;

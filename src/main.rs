@@ -7,7 +7,7 @@
 //  3) Realm Server for logon (MCP)
 // Then hands them over to the appropriate handling procedures.
 // WIP currently, ultimate goal would be enabling clientless botting
-
+#![feature(arbitrary_enum_discriminant)]
 #![allow(dead_code)]
 
 mod client;

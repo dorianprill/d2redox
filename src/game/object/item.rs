@@ -1,4 +1,7 @@
 #[allow(dead_code)]
-pub struct Item {
 
+pub type ItemId = u32;
+
+pub struct Item {
+    id: ItemId,
 }

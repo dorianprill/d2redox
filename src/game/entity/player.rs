@@ -1,7 +1,7 @@
 // Player struct
 // composes with a WorldEntity struct
 
-use game::entity::world_entity::WorldEntity;
+use game::entity::Entity;
 
 
 #[allow(dead_code)]
@@ -12,7 +12,7 @@ pub struct Player {
         mercenary_id:       u32,
         level:              u32,
         portal_id:          u32,
-        pub entity:         WorldEntity
+        pub entity:         Entity
         //protected Globals.CharacterClassType m_class;
 }
 

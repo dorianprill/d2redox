@@ -1,6 +1,6 @@
 use connection::d2gs::d2gs_packet::D2GSPacket;
 use connection::huffman;
-use engine::handlers::game_packet::game_packet_dispatch;
+use engine::handlers::packets::game_packet_dispatch;
 
 use std::collections::VecDeque;
 

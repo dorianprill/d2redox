@@ -1,6 +1,6 @@
 /// decoded D2GS packet data type
 use std::fmt;
-use engine::handlers::game_packet::GamePacketId;
+use engine::handlers::packets::GamePacketId;
 
 pub trait AsBytes {
 	fn as_bytes(&self) -> &[u8];
