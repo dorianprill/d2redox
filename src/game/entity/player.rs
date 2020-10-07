@@ -74,3 +74,28 @@ pub enum PlayerItemSlot {
     Boots           = 0x09,
     Gloves          = 0x0A
 }
+
+pub enum PhraseId {
+    Help    = 0x19,
+    Follow  = 0x1A,
+    Gift    = 0x1B,
+    Thanks  = 0x1C,
+    Sorry   = 0x1D,
+    Bye     = 0x1E,
+    Die     = 0x1F,
+    Flee    = 0x20
+}
+
+// taken from https://bnetdocs.org/packet/98/d2gs-trade
+//Press Accept button (unaccept) should be sent when placing items in the trade window as well
+pub enum TradeActionId {
+    CancelTradeRequest  = 0x02,
+    AcceptTradeRequest  = 0x03,
+    PressAcceptButton   = 0x04,
+    UnpressAcceptButton = 0x07,
+    RefreshWindow       = 0x08,
+    CloseStash          = 0x12,
+    WithdrawGold        = 0x13,
+    DepositGold         = 0x14,
+    CloseHoradricCube   = 0x17
+}

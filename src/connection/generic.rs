@@ -136,7 +136,7 @@ impl Connection {
                     // game packet
                     4000 => self.d2gs_reader.read(udp.payload()),
                     // bncs/realm packet -> not implemented yet
-                    6112 => println!("Received unhandled BNCS or Realm packet"),
+                    //6112 => println!("Received unhandled BNCS or Realm packet"),
                     _ => return,
                 }
                 // println!(
@@ -166,7 +166,7 @@ impl Connection {
                     // game packet
                     4000 => self.d2gs_reader.read(tcp.payload()),
                     // bncs/realm packet -> not implemented yet
-                    6112 => println!("Received unhandled BNCS or Realm packet"),
+                    //6112 => println!("Received unhandled BNCS or Realm packet"),
                     _ => return,
                 }
                 // println!(

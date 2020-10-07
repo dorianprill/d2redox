@@ -1,38 +1,5 @@
 //use std::mem::transmute;
 
-//use game::coordinate::*;
-//use game::entity::player::Player;
-#[allow(dead_code)]
-#[repr(u8)]
-enum ClientPacket {
-    Walk                    = 0x01,
-    Run                     = 0x03,
-    CastOnCoord             = 0x0c,
-    CastOnEntity            = 0x0d,
-    OverheadMessage         = 0x14,
-    UseItem                 = 0x20,
-    StackItem               = 0x21,
-    ChatMessage             = 0x24,
-    UseBeltItem             = 0x26,
-    NPCInteraction          = 0x27,
-    InsertSocketItem        = 0x28,
-    ItemToCube              = 0x2A,
-    NPCDialogueInit         = 0x2F,
-    NPCDialogueCancel       = 0x30,
-    NPCBuy                  = 0x32,
-    NPCSell                 = 0x33,
-    SwitchSkill             = 0x3c,
-    UseWaypoint             = 0x49,
-    RequestReassignment     = 0x4b,
-    MakeEntityMove          = 0x59,
-    PartyAction             = 0x5E,
-    Relocate                = 0x5f,
-    MercPotion              = 0x61,
-    NPCMoveStart            = 0x67,
-    Ping                    = 0x6D,
-    WeaponSlotSwitch        = 0x97,
-}
-
 fn u32_to_byte_array(x:u32) -> [u8;4] {
     let b1 : u8 = ((x >> 24) & 0xff) as u8;
     let b2 : u8 = ((x >> 16) & 0xff) as u8;

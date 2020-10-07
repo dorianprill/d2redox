@@ -4,25 +4,48 @@ use game::object::item::Item;
 use game::object::world_object::WorldObject;
 use game::areas::ActType;
 use game::coordinate::Coordinate;
-//use game::map::*;
+
+pub enum GameType {
+    OpenBattleNet = 1,
+    TCPIP         = 2,
+    SinglePlayer  = 3
+}
 
 #[allow(dead_code)]
 pub enum Difficulty {
-    Normal,
-    Nightmare,
-    Hell
+    Normal     = 0,
+    Nightmare  = 1,
+    Hell       = 2
+}
+
+pub enum Locale {
+    enUS    = 0,
+    esES    = 1,
+    deDE    = 2,
+    frFR    = 3, 
+    ptPT    = 4,
+    itIT    = 5, 
+    ja      = 6,
+    ko      = 7,
+    si      = 8,
+    zhCN    = 9,
+    pl      = 10, 
+    ru      = 11, 
+    enGB    = 12 
 }
 
 #[allow(dead_code)]
 pub enum CharacterClass {
-    Amazon,
-    Sorceress,
-    Necromancer,
-    Paladin,
-    Barbarian,
-    Druid,
-    Assassin
+    Amazon      = 0,
+    Sorceress   = 1,
+    Necromancer = 2,
+    Paladin     = 3,
+    Barbarian   = 4,
+    Druid       = 5,
+    Assassin    = 6
 }
+
+
 
 #[allow(dead_code)]
 pub struct Game {
