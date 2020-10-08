@@ -1,7 +1,8 @@
 pub mod player;
 pub mod npc;
-//pub mod world_entity;
 pub mod mercenary;
+
+use core::coordinate::Coordinate;
 
 
 #[allow(dead_code)]
@@ -13,8 +14,6 @@ pub enum EntityType {
     Items       = 0x04,
     Entrance    = 0x05
 }
-
-use game::coordinate::Coordinate;
 
 pub type EntityId = u32;
 

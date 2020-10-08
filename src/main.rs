@@ -8,12 +8,12 @@
 // Then hands them over to the appropriate handling procedures.
 // WIP currently, ultimate goal would be enabling clientless botting
 #![feature(arbitrary_enum_discriminant)]
-#![allow(dead_code)]
+#[allow(dead_code)]
 
 mod client;
 mod connection;
 mod engine;
-mod game;
+mod core;
 
 use connection::generic::Connection;
 

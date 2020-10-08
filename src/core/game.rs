@@ -34,7 +34,7 @@ pub enum Locale {
     enGB    = 12 
 }
 
-#[allow(dead_code)]
+
 pub enum CharacterClass {
     Amazon      = 0,
     Sorceress   = 1,
@@ -51,7 +51,7 @@ pub enum CharacterClass {
 pub struct Game {
     // skills: Vec<Skills>;
     // item_skills: Vec<ItemSkills>
-    myself:         Player,
+    myself:         &Player,
     // stash:       Container;
     // cube:        Container;
     // belt:        Belt;

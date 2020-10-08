@@ -71,6 +71,9 @@ pub enum ClientMessage {
         entity_id: u32
     } = 0x0A, 
 
+    /// TODO usage not known, contains no data?
+    SkillUnknown = 0x0B,
+
     ///GameHandshake = 0x0B, // TODO server message?
     /// Uses the currently selected skill at the specified location
     RightSkillOnLocation {
@@ -108,6 +111,9 @@ pub enum ClientMessage {
         entity_id: u32
     } = 0x11, 
 
+    /// TODO: Not known, contains no data
+    SkillUnknown2 = 0x12,
+
     /// Interacts with the specified Entity. For players and npc's, it will send a request to interact. 
     /// The interaction depends on the type of the unit or object. For others it will trigger the object, for example using a shrine, looting a corpse you have permission to loot, or opening and closing a door.
     InteractWithEntity {
@@ -127,6 +133,15 @@ pub enum ClientMessage {
         unknown2:   u16
     } = 0x14, 
 
+    /// Send a chat message to the server
+    /// TODO: what is type?
+    ChatMessage {
+        type: u8,
+        unknown1: u8,
+        message: String,
+        unknown2: u16
+    } = 0x15
+
     ///PlayerReassign          = 0x15, // TODO: server message?
     /// Pick up a ground item to cursor buffer/inventory
     PickupItem {
@@ -140,7 +155,8 @@ pub enum ClientMessage {
         item_id: u32
     } = 0x17,
 
-    /// Moves item form the player's cursor buffer to an inventory space (should'nt it be name FromBuffer?)
+    /// Moves item from the player's cursor to an inventory space buffer
+    /// possible buffers are found in core::object::item::ItemBufferId
     ItemToBuffer {
         item_id:    u32, 
         x:          u32, 
@@ -148,7 +164,7 @@ pub enum ClientMessage {
         item_buffer:u32
     } = 0x18, 
 
-    /// Pickup an item from the possible buffers below, moving it to the cursor buffer
+    /// Pickup an item from the possible buffers, moving it to the cursor buffer
     PickupBufferItem {
         item_id: u32
     } = 0x19, 
@@ -160,21 +176,39 @@ pub enum ClientMessage {
     } = 0x1A, 
 
     /// Moves item from body location to player's cursor buffer
+    /// TODO description is the same as PickupBodyItem, what is the id for?
     Swap2HandedItem {
         item_id:          u32, 
         player_item_slot: u32
     } = 0x1B, 
 
-    /// Pickup an item from a Body Location to you're cursor buffer
+    /// Pickup an item from a Body Location to your cursor buffer
     PickupBodyItem {
         player_item_slot: u16
     } = 0x1C, 
 
     /// Swaps item in player's cursor buffer with item in the body location
-    SwitchBodyItem {
+    /// renamed from SwitchBodyItem (bnetdocs)
+    PlaceBodyItem {
         item_id: u32, 
         player_item_slot: u32
     } = 0x1D, 
+
+    /// Swaps item in player's cursor buffer with item in the body location
+    /// TODO this message doesn't appear on bnetdocs
+    SwitchBodyItem2 {
+        item_id: u32,
+        player_item_slot: u32
+    } = 0x1E,
+
+    /// Tries to swap a cursor item with an item in inventory at position (x,y)
+    /// TODO: item_from_id probably needs to be placed on cursor first
+    SwitchInventoryItem {
+        item_from_id:   u32,
+        item_to_id:     u32,
+        x:              u32,
+        y:              u32
+    } = 0x1F,
 
     /// Uses the specified item (such as a potion, town portal, etc)
     UseItem {
@@ -189,7 +223,7 @@ pub enum ClientMessage {
         item_id_target: u32
     } = 0x21,
 
-    /// DEPRECATED
+    /// DEPRECATED according to bnetdocs
     RemoveStackItem {
         item_id: u32
     } = 0x22, 
@@ -218,6 +252,12 @@ pub enum ClientMessage {
         unknown2: u32
     }  = 0x26, 
 
+    /// TODO is item1 the scroll and item2 the item to identify?
+    IdentifyItem {
+        item1_id: u32,
+        item2_id: u32
+    } = 0x27
+
     /// Inserts the specified item into a socketed item
     InsertSocketItem {
         socketable_item: u32, 
@@ -236,8 +276,13 @@ pub enum ClientMessage {
         cube_id: u32
     } = 0x2A, 
     
+    /// DEPRECATED according to bnetdocs
+    UnselectObj = 0x2D, 
 
-    //UnselectObj             = 0x2D, // DEPRECATED
+    /// TODO Unknown, supposedly chat functionality
+    ChatUnknown1 {
+        unknown1: u16,
+    } = 0x2E,
 
     /// Initiate an NPC sesstion, sent following: C->S 0x13. 
     /// It indicates that you are now interacting with an NPC, and a dialog window is opened. 
@@ -252,6 +297,12 @@ pub enum ClientMessage {
         entity_type: u32,
         npc_id: u32 // TODO: also just an entity id?
     } = 0x30, 
+
+    /// TODO 
+    QuestMessage {
+        unknown1: u32,
+        unknown2: u32
+    } = 0x31
 
     /// Buys an item from a Non Player Character
     NpcBuy {
@@ -269,6 +320,30 @@ pub enum ClientMessage {
         cost:           u32
     } = 0x33, 
 
+    /// TODO what is the argument?
+    CainIdentify{
+        unknown1: u32
+    } = 0x34,
+    
+    /// TODO what are the ids ?
+    Repair {
+        id1: u32,
+        id2: u32,
+        id3: u32,
+        id4: u32
+    } = 0x35,
+    
+    /// TODO hat are the ids?
+    Hire {
+        id1: u32,
+        id2: u32
+    } = 0x36,
+    
+    /// TODO dose it choose gamble dialogue if available?
+    Gambled {
+        id: u32
+    } = 0x37,
+
     /// This packet's use is currently unconfirmed (bnetdocs)
     /// Possible Trade Types are found in entity::npc::TradeType
     NpcTrade {
@@ -277,12 +352,84 @@ pub enum ClientMessage {
         unknown:    u32
     } = 0x38, 
 
+    /// TODO what is the type/id ?
+    BuyHealth {
+        type: u32
+    } = 0x39,
+
+
+    /// TODO make an enum for Strength, Agility, Vitality and Energy values. what are they?
+    StatPoint {
+        type: u16
+    } = 0x3A,
+
+    SkillPoint {
+        type: u16
+    } = 0x3B,
+
+    /// TODO what is hand? left or right? values?
+    SwitchSkill {
+        skill: u8,
+        unknown1: u16,
+        hand: u8,
+        unknown2: [u8;4]
+    } = 0x3C,
+
+    /// TODO is parameter an object or an entity?
+    CloseDoor {
+        unknown: u32
+    } = 0x3D,
+
+    /// TODO What is this supposed to do and when to use it?
+    UpdateItemStat {
+        id: u32
+    } = 0x3E,
+
     /// All phrases sent to the server will be 
     /// heard by all players in your vicinity
     /// Possible values for character phrase ids are found in entity::player::PhraseId
     CharacterPhrase {
         phrase_id: u16
     } = 0x3F, 
+
+    /// TODO no data?
+    QuestLog = 0x40,
+
+    /// TODO no data?
+    Respawn = 0x41,
+
+    /// TODO what are the ids?
+    PutSlot {
+        id1: u32,
+        id2: u32,
+        id3: u32,
+        id4: u32
+    } = 0x44,
+
+    /// TODO what are the types?
+    ChangeTownPortal {
+        id1: u32,
+        id2: u32,
+        id3: u32
+    } = 0x45,
+      
+    /// TODO what is the 'type'? probably attack/getting struck?
+    MercenaryInteract {
+        merc_id: u32,
+        unit_id: u32,
+        type:    u32
+    } = 0x46,
+
+    /// TODO can we really move the merc as we please?
+    /// this could be exploitet AF! (always move merc inbetween you and nearest monster, for example)
+    MoveMercenary {
+        merc_id: u32,
+        x:       u32,
+        y:       u32
+    } = 0x47,
+
+    /// TODO empty?
+    Unknown1 = 0x48,
 
     /// Requests to go to a waypoint if it was already activated
     Waypoint {
@@ -292,6 +439,22 @@ pub enum ClientMessage {
         level_number:u8,
         unknown3:    u16
     } = 0x49, 
+
+    /// TODO reassign what? player ids?
+    Reassign {
+        id1: u32,
+        id2: u32
+    } = 0x4B,
+
+    /// TODO Probably used for ground items (are they object or entity?)?
+    DisappearItem {
+        item_id: u32
+    } = 0x4C
+
+    /// TODO
+    Unknown2 {
+       unknown: u16
+    } = 0x4D,
 
     /// This message should be used for manipulating the trading window,
     /// the Horadric Cube item window, and the Stash window.
@@ -307,6 +470,38 @@ pub enum ClientMessage {
         player_id:   u32,
         gold_amount: u32
     } = 0x50,	
+
+    /// TODO what does it do, what are the arguments?
+    Assignment {
+        unknown1: u32,
+        unknown2: u32
+    } = 0x51,
+
+    /// TODO what does it do?
+    StaOn = 0x53,
+
+    //// TODO what does it do?
+    StaOff = 0x54,
+
+    /// TODO questid?
+    CloseQuest {
+        unknown1: u16
+    } = 0x58,
+
+    /// TODO unknown operation
+    TownFolk {
+        id1: u32,
+        id2: u32,
+        id3: u32,
+        id4: u32
+    } = 0x59,
+
+    /// TODO what is the first id and the type?
+    Relation {
+        id:         u8,
+        type:       u8,
+        player_id:  u32
+    } = 0x5D,
     
     /// Possible party actions are defined in party::PartyAction
     Party {
@@ -314,37 +509,71 @@ pub enum ClientMessage {
         player_id:    u32
     }= 0x5E, 
 
-    //PortalInfo              = 0x60, // TODO
+    /// TODO
+    UpdatePosition {
+        x: u16,
+        y: u16
+    } = 0x5F,
+
+    /// TODO verify function
+    SwitchEquipment = 0x60,
 
     /// Takes the potion your cursor holds and gives it to the mercenary
+    /// TODO are the arguments correct?
     PotionToMercenary {
         uknown: u16
     } = 0x61, 
 
+    /// Resurrects the mercenary
+    /// TODO: need to open npc dialogue first?
+    ResurrectMercenary {
+        merc_id: u32
+    } = 0x62,
+
+    /// TODO data unknown
+    /// should have buffer id and belt id?
+    InventoryToBelt = 0x63
+
     /// Replaces 0x67 D2BS_GAMELOGON when creating 
     /// a new Solo Player, Open Battle.net or TCP/IP.
-    /// Not used at all on Battle.net.
+    /// Not used at all on Battle.net. (TODO is this statement true?)
     /// info taken from https://bnetdocs.org/packet/524/d2gs-gamecreate
     /// Template, Unknown1, Unknown2 & Unknown3 seem to always be 0.
     /// Game name is empty for Solo Player & TCP/IP. 
     /// In Kolbot, sent between "Heartbeat loaded" & "Starting default.dbj"
     GameCreate {
-        game_name: [u8;16],
-        game_type: u8,
-        character_class: u8,
-        template_id: u8,
-        difficulty:  u8,
+        game_name:      [u8;16],
+        game_type:      u8,
+        character_class:u8,
+        template_id:    u8,
+        difficulty:     u8,
         character_name: [u8; 16],
         unknown1:       u16,
         arena_flags:    u32,
         unknown2:       u8,
         unknown3:       u8,
-        locale_id:      u8
+        locale:      u8
     } = 0x67, 
 
+    // In Kolbot, sent between "Heartbeat loaded" & "Starting default.dbj"
+    GameLogon {
+        mcp_cookie:         u32,
+        game_id:            u16,
+        character_class:    u8,
+        game_version:       u32,
+        game_constant:      u64,
+        locale:             u8,
+        character_name:     [u8;16],
 
-    GameLogon               = 0x68, // In Kolbot, sent between "Heartbeat loaded" & "Starting default.dbj"
-    EnterGameEnvironment    = 0x69, // This byte should be sent in order to start receiving in-game messages and to interact with the world itself. 
+    } = 0x68, 
+
+    /// TODO which of the two definitions is true?
+    //EnterGameEnvironment    = 0x69, // This byte should be sent in order to start receiving in-game messages and to interact with the world itself. 
+    GameExit = 0x69,
+
+
+    /// TODO apparently no data
+    EnterGameEnvironment = 0x6B
 
     // This packet should be sent every five to seven seconds to avoid timeout
     Ping {
@@ -356,71 +585,3 @@ pub enum ClientMessage {
 }
 
 
-// impl fmt::Display for ClientMessage {
-//     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-//         let print = match *self {
-// 			ClientMessage::GameLoading              => "GameLoading",
-// 		    ClientMessage::WalkToLocation           => "WalkToLocation",
-// 		    ClientMessage::WalkToEntity             => "WalkToEntity",           
-//             ClientMessage::RunToLocation            => "RunToLocation",
-//             ClientMessage::RunToEntity              => "RunToEntity",
-//             ClientMessage::LeftSkillOnLocation      => "LeftSkillOnLocation",
-//             ClientMessage::LeftSkillOnEntity        => "LeftSkillOnEntity",
-//             ClientMessage::LeftSkillOnEntityEx      => "LeftSkillOnEntityEx",
-//             ClientMessage::LeftSkillOnLocationEx    => "LeftSkillOnLocationEx",
-//             ClientMessage::LeftSkillOnEntityEx2     => "LeftSkillOnEntityEx2",
-//             ClientMessage::LeftSkillOnEntityEx3     => "LeftSkillOnEntityEx3",
-//             ClientMessage::GameHandshake            => "GameHandshake",
-//             ClientMessage::RightSkillOnLocation     => "RightSkillOnLocation",
-//             ClientMessage::RightSkillOnEntity       => "RightSkillOnEntity",
-//             ClientMessage::RightSkillOnEntityEx     => "RightSkillOnEntityEx",
-//             ClientMessage::RightSkillOnLocationEx   => "RightSkillOnLocationEx",
-//             ClientMessage::RightSkillOnEntityEx2    => "RightSkillOnEntityEx2",
-//             ClientMessage::RightSkillOnEntityEx3    => "RightSkillOnEntityEx3",
-//             ClientMessage::InteractWithEntity       => "InteractWithEntity",
-//             ClientMessage::OverheadMessage          => "OverheadMessage",
-//             ClientMessage::PlayerReassign           => "PlayerReassign",
-//             ClientMessage::PickupItem               => "PickupItem",
-//             ClientMessage::DropItem                 => "DropItem", 
-//             ClientMessage::ItemToBuffer             => "ItemToBuffer",
-//             ClientMessage::PickupBufferItem         => "PickupBufferItem",
-// 		    ClientMessage::ItemToBody               => "ItemToBody",
-// 		    ClientMessage::Swap2HandedItem          => "Swap2HandedItem",
-//             ClientMessage::PickupBodyItem           => "PickupBodyItem",
-//             ClientMessage::SwitchBodyItem            => "SwitchBodyItem",
-
-//             ClientMessage::UseItem                  => "UseItem",
-//             ClientMessage::StackItem                => "StackItem",
-//             ClientMessage::RemoveStackItem          => "RemoveStackItem",
-//             ClientMessage::ItemToBelt               => "ItemToBelt", 
-//             ClientMessage::RemoveBeltItem           => "RemoveBeltItem", 
-//             ClientMessage::SwitchBeltItem           => "SwitchBeltItem", 
-//             ClientMessage::UseBeltItem              => "UseBeltItem",
-
-//             ClientMessage::InsertSocketItem         => "InsertSocketItem",
-//             ClientMessage::ScrollToTome             => "ScrollToTome",
-//             ClientMessage::ItemToCube               => "ItemToCube",
-//             ClientMessage::UnselectObj              => "UnselectObj",
-//             ClientMessage::NpcInit                  => "NpcInit",
-//             ClientMessage::NpcCancel                => "NpcCancel",
-//             ClientMessage::NpcBuy                   => "NpcBuy",
-//             ClientMessage::NpcSell                  => "NpcSell",
-//             ClientMessage::NpcTrade                 => "NpcTrade",
-//             ClientMessage::CharacterPhrase          => "CharacterPhrase",
-            
-// 		        ClientMessage::Trade           	     => "Trade",
-		    
-//             ClientMessage::PortalInfo               => "PortalInfo",
-//             ClientMessage::PotionMercenary          => "PotionMercenary", 
-
-//             ClientMessage::GameCreate               => "GameCreate", 
-//             ClientMessage::GameLogon                => "GameLogon", 
-//             ClientMessage::EnterGameEnvironment     => "EnterGameENvironment", 
-
-//             ClientMessage::Ping                     => "Ping",
-            
-// 			_							            => "UnknownClientMessage"
-//         };
-//         write!(f, "{}: {}",self, print)
-//     }
-// }

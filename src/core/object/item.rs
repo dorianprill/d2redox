@@ -1,5 +1,4 @@
 #[allow(dead_code)]
-
 pub type ItemId = u32;
 
 pub struct Item {
@@ -16,7 +15,7 @@ pub enum MercenaryItemSlot {
 }
 
 #[repr(u8)]
-pub enum ItemBuffer {
+pub enum ItemBufferId {
     CharacterInventory  = 0x00,
     NpcVendor           = 0x01, 
     TradeWindow         = 0x02,

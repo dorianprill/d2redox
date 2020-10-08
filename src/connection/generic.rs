@@ -21,8 +21,6 @@ use std::str;
 //use connection::raw_packet::RawPacket;
 use connection::d2gs::d2gs_reader::D2GSReader;
 
-const PORTS: [u16; 2] = [6112, 4000];
-
 // There are three different connection involved:
 // BNCS: the battle.net chat server
 // Realm: (also called MCP)

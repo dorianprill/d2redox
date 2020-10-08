@@ -1,7 +1,7 @@
 // Player struct
 // composes with a WorldEntity struct
 
-use game::entity::Entity;
+use core::entity::Entity;
 
 
 #[allow(dead_code)]
