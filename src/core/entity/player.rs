@@ -61,7 +61,6 @@ impl Player {
 
 }
 
-
 pub enum PlayerItemSlot {
     Helm            = 0x01,
     Amulet          = 0x02,
@@ -75,7 +74,7 @@ pub enum PlayerItemSlot {
     Gloves          = 0x0A
 }
 
-pub enum PhraseId {
+pub enum Phrase {
     Help    = 0x19,
     Follow  = 0x1A,
     Gift    = 0x1B,
@@ -88,7 +87,7 @@ pub enum PhraseId {
 
 // taken from https://bnetdocs.org/packet/98/d2gs-trade
 //Press Accept button (unaccept) should be sent when placing items in the trade window as well
-pub enum TradeActionId {
+pub enum TradeAction {
     CancelTradeRequest  = 0x02,
     AcceptTradeRequest  = 0x03,
     PressAcceptButton   = 0x04,
