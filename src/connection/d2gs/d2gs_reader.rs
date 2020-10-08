@@ -123,7 +123,7 @@ impl D2GSReader {
 
 	pub fn handle_all(&mut self) {
 		while let Some(p) = self.packets.pop_front() {
-			println!("{}",p);
+			println!("{}", p);
 			game_packet_dispatch(&p);
 		}
 	}
