@@ -136,11 +136,11 @@ pub enum ClientMessage {
     /// Send a chat message to the server
     /// TODO: what is type?
     ChatMessage {
-        type: u8,
+        msg_type: u8,
         unknown1: u8,
         message: String,
         unknown2: u16
-    } = 0x15
+    } = 0x15,
 
     ///PlayerReassign          = 0x15, // TODO: server message?
     /// Pick up a ground item to cursor buffer/inventory
@@ -170,6 +170,7 @@ pub enum ClientMessage {
     } = 0x19, 
 
     /// Moves item from player's cursor buffer to body location
+    /// TODO: maybe also works for mercenary
     ItemToBody {
         item_id: u32, 
         player_item_slot: u32
@@ -256,7 +257,7 @@ pub enum ClientMessage {
     IdentifyItem {
         item1_id: u32,
         item2_id: u32
-    } = 0x27
+    } = 0x27,
 
     /// Inserts the specified item into a socketed item
     InsertSocketItem {
@@ -302,7 +303,7 @@ pub enum ClientMessage {
     QuestMessage {
         unknown1: u32,
         unknown2: u32
-    } = 0x31
+    } = 0x31,
 
     /// Buys an item from a Non Player Character
     NpcBuy {
@@ -354,17 +355,17 @@ pub enum ClientMessage {
 
     /// TODO what is the type/id ?
     BuyHealth {
-        type: u32
+        id: u32
     } = 0x39,
 
 
     /// TODO make an enum for Strength, Agility, Vitality and Energy values. what are they?
     StatPoint {
-        type: u16
+        stat_type: u16
     } = 0x3A,
 
     SkillPoint {
-        type: u16
+        skill: u16
     } = 0x3B,
 
     /// TODO what is hand? left or right? values?
@@ -415,9 +416,9 @@ pub enum ClientMessage {
       
     /// TODO what is the 'type'? probably attack/getting struck?
     MercenaryInteract {
-        merc_id: u32,
-        unit_id: u32,
-        type:    u32
+        merc_id:        u32,
+        unit_id:        u32,
+        interact_type:  u32
     } = 0x46,
 
     /// TODO can we really move the merc as we please?
@@ -449,7 +450,7 @@ pub enum ClientMessage {
     /// TODO Probably used for ground items (are they object or entity?)?
     DisappearItem {
         item_id: u32
-    } = 0x4C
+    } = 0x4C,
 
     /// TODO
     Unknown2 {
@@ -499,7 +500,7 @@ pub enum ClientMessage {
     /// TODO what is the first id and the type?
     Relation {
         id:         u8,
-        type:       u8,
+        relation:   u8,
         player_id:  u32
     } = 0x5D,
     
@@ -532,7 +533,7 @@ pub enum ClientMessage {
 
     /// TODO data unknown
     /// should have buffer id and belt id?
-    InventoryToBelt = 0x63
+    InventoryToBelt = 0x63,
 
     /// Replaces 0x67 D2BS_GAMELOGON when creating 
     /// a new Solo Player, Open Battle.net or TCP/IP.
@@ -573,7 +574,7 @@ pub enum ClientMessage {
 
 
     /// TODO apparently no data
-    EnterGameEnvironment = 0x6B
+    EnterGameEnvironment = 0x6B,
 
     // This packet should be sent every five to seven seconds to avoid timeout
     Ping {
