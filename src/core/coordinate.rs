@@ -1,25 +1,28 @@
 // (X,Y)-coordinates on the map to localize objects and entities
 #[allow(dead_code)]
+#[derive(Eq, PartialEq)]
 pub struct Coordinate {
     x: u16,
     y: u16
 }
 
+
 impl Coordinate {
 
-    pub fn new(x: u16, y: u16) -> Coordinate { // we create a method to instantiate `Foo`
+    pub fn new(x: u16, y: u16) -> Coordinate { 
         Coordinate { x: x, y: y }
     }
 
-    pub fn equals(&self, other: Coordinate) -> bool {
-        if self.x == other.x && self.y == other.y {
-            return true
-        } else {
-            return false
-        }
-    }
+    /// DEPRECATED (derived for struct)
+    // pub fn equals(&self, other: Coordinate) -> bool {
+    //     if self.x == other.x && self.y == other.y {
+    //         return true
+    //     } else {
+    //         return false
+    //     }
+    // }
 
-    pub fn get_hash(&self) -> i32 {
+    pub fn hash(&self) -> i32 {
         // bitwise XOR
         (self.x ^ self.y) as i32
     }
