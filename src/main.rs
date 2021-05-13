@@ -10,10 +10,9 @@
 
 mod client;
 mod connection;
-mod engine;
 mod core;
+mod engine;
 use connection::generic::Connection;
-
 
 fn main() {
     let mut connection = Connection::new();

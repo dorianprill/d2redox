@@ -4,8 +4,8 @@ use std::cmp::Ordering;
 #[allow(dead_code)]
 #[derive(Eq, Clone, Copy)]
 pub enum PacketDirection {
-	Receive,
-	Send
+    Receive,
+    Send,
 }
 
 impl PartialEq for PacketDirection {
@@ -14,36 +14,33 @@ impl PartialEq for PacketDirection {
     }
 }
 
-
 // Must impl Ord trait to use std::collections::BinaryHeap as priority queue
 #[allow(dead_code)]
 #[derive(Eq)]
 pub struct RawPacket<'a> {
-	// raw client->server packet bytes
-	// in case of compressed packets, one raw packet can include several game packets
-	raw: &'a[u8],
-	direction: PacketDirection,
-	priority: u8 // for the priority queue
+    // raw client->server packet bytes
+    // in case of compressed packets, one raw packet can include several game packets
+    raw: &'a [u8],
+    direction: PacketDirection,
+    priority: u8, // for the priority queue
 }
 
-
 impl<'a> RawPacket<'a> {
+    pub fn payload(&self) -> &[u8] {
+        self.raw
+    }
 
-	pub fn payload(&self) -> &[u8] {
-		self.raw
-	}
+    pub fn direction(&self) -> PacketDirection {
+        self.direction
+    }
 
-	pub fn direction(&self) -> PacketDirection {
-		self.direction.clone()
-	}
-
-	pub fn priority(&self) -> u8 {
-		self.priority
-	}
+    pub fn priority(&self) -> u8 {
+        self.priority
+    }
 }
 
 impl<'a> Ord for RawPacket<'a> {
-	fn cmp(&self, other: &RawPacket<'a>) -> Ordering {
+    fn cmp(&self, other: &RawPacket<'a>) -> Ordering {
         self.priority.cmp(&other.priority)
     }
 }

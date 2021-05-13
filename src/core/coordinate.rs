@@ -3,14 +3,12 @@
 #[derive(Eq, PartialEq)]
 pub struct Coordinate {
     x: u16,
-    y: u16
+    y: u16,
 }
 
-
 impl Coordinate {
-
-    pub fn new(x: u16, y: u16) -> Coordinate { 
-        Coordinate { x: x, y: y }
+    pub fn new(x: u16, y: u16) -> Coordinate {
+        Coordinate { x, y }
     }
 
     /// DEPRECATED (derived for struct)
@@ -28,6 +26,6 @@ impl Coordinate {
     }
 
     pub fn distance(&self, other: Coordinate) -> f32 {
-        ( (self.x - other.x).pow(2) as f32 + (self.y - other.y).pow(2) as f32).sqrt()
+        ((self.x - other.x).pow(2) as f32 + (self.y - other.y).pow(2) as f32).sqrt()
     }
 }

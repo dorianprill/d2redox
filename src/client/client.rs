@@ -1,4 +1,3 @@
-
 pub enum Status {
     Uninitialized,
     InvalidCdKey,
@@ -11,7 +10,7 @@ pub enum Status {
     McpLogonFail,
     RealmDown,
     OnMcp,
-    NotInGame
+    NotInGame,
 }
 
 pub struct Client {

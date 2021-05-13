@@ -6,7 +6,7 @@ pub enum ActType {
     Act2 = 1,
     Act3 = 2,
     Act4 = 3,
-    Act5 = 4
+    Act5 = 4,
 }
 //
 //

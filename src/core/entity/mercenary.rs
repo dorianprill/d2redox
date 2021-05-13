@@ -1,4 +1,2 @@
 #[allow(dead_code)]
-pub struct Mercenary {
-
-}
+pub struct Mercenary {}

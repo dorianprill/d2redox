@@ -9,7 +9,7 @@ use connection::d2gs::d2gs_packet::D2GSPacket;
 
 pub enum GamePacketId {
     ClientMessage,
-    ServerPacketId
+    ServerPacketId,
 }
 
 impl fmt::Display for GamePacketId {
@@ -17,8 +17,6 @@ impl fmt::Display for GamePacketId {
         write!(f, "{}", self)
     }
 }
-
-
 
 /// Packet dispatcher calls the corresponding event handler functions in reaction to a server message
 pub fn game_packet_dispatch(_rcv_packet: &D2GSPacket) {

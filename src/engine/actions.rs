@@ -1,17 +1,17 @@
 //use std::mem::transmute;
 
-fn u32_to_byte_array(x:u32) -> [u8;4] {
-    let b1 : u8 = ((x >> 24) & 0xff) as u8;
-    let b2 : u8 = ((x >> 16) & 0xff) as u8;
-    let b3 : u8 = ((x >>  8) & 0xff) as u8;
-    let b4 : u8 =        (x  & 0xff) as u8;
-    return [b1, b2, b3, b4]
+fn u32_to_byte_array(x: u32) -> [u8; 4] {
+    let b1: u8 = ((x >> 24) & 0xff) as u8;
+    let b2: u8 = ((x >> 16) & 0xff) as u8;
+    let b3: u8 = ((x >> 8) & 0xff) as u8;
+    let b4: u8 = (x & 0xff) as u8;
+    [b1, b2, b3, b4]
 }
 
-fn u16_to_byte_array(x:u32) -> [u8;2] {
-    let b1 : u8 = ((x >>  8) & 0xff) as u8;
-    let b2 : u8 =        (x  & 0xff) as u8;
-    return [b1, b2]
+fn u16_to_byte_array(x: u32) -> [u8; 2] {
+    let b1: u8 = ((x >> 8) & 0xff) as u8;
+    let b2: u8 = (x & 0xff) as u8;
+    [b1, b2]
 }
 
 //
