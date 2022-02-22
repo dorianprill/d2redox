@@ -2,7 +2,7 @@
 Toy project botting engine for learning rust & reverse engineering with one of my favorite games ever.  
 
 As of now, this project just functions as a simple Diablo2 game server packet sniffer.  
-Most core game functionality will probably be split off into an own library `d2corelib`, ideally also usable for webassembly targets. 
+> Caution: Most of this code has been organized into a standalone library [libd2r](https://github.com/dorianprill/libd2r). This repo will be archived.
 
 ## Design Principles:
   - cross platform without runtime/VM requirement  
