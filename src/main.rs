@@ -8,14 +8,9 @@
 
 #![allow(dead_code)]
 
-mod client;
-mod connection;
-mod core;
-mod engine;
-use connection::generic::Connection;
+use libd2r::client::client::Client;
 
 fn main() {
-    let mut connection = Connection::new();
-    connection.init();
-    connection.listen();
+    let mut client = Client::new();
+    client.start()
 }
