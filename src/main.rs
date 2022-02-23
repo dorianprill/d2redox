@@ -8,7 +8,7 @@
 
 #![allow(dead_code)]
 
-use libd2r::client::client::Client;
+use libd2r::Client;
 
 fn main() {
     let mut client = Client::new();
