@@ -16,23 +16,22 @@ As of now, this project just functions as a simple Diablo2 game server packet sn
 
 ## Milestones
 
-1. Read raw network packages, filter by port, identify protocol for each package and pass them on to their specific handlers  
-   - [x] D2GS (plain)  
-   - [x] D2GS (compressed)  
-   - [ ] BNCS  
-   - [ ] MCP  
-2. Priority based event handling for modules (e.g. chicken, pickit, \[move, combat, ...\])
+1. Read, Decode, and Print network packages for Game-, Realm-, and BNetChat servers (this is now entirely done in `libd2`, see repo)
+   - [x]
+3. Priority based event handling for passive modules (e.g. chicken, pickit, \[move, combat, ...\])
    - [ ] Chicken module
    - [ ] Pickit module (parse configuration from .nip files, see kolbot)
-3. Pathing and Collision
+4. Pathing and Collision
    - [ ] Implement pathing (to walk/teleport to location on the same map)
    - [ ] Navigate to arbitrary locations in the game, considering found waypoints, quest state
-4. allow scripting with gluon, dyon or lua/wren?
+5. allow scripting with gluon, dyon, lua, wren, TypeScript?
+   - [ ] TBD
 
 ## How to Build
 
 ### Linux
 
+Tested with Diablo 2 (Legacy) and WINE
 `cargo build --release`
 
 ### Mac Os
@@ -41,8 +40,9 @@ As of now, this project just functions as a simple Diablo2 game server packet sn
 
 ### Windows
 
-You will need to install npcap and additionally download the WinPcap Developers Pack as per the [libpnet](https://github.com/libpnet/libpnet) build instructions for Windows. Then point your user environment variable `LIB` (create if nonexistent) to the folder where to find Packet.lib i.e. `WpdPack/Lib/x64/` from the WinPcap Developers Pack you just downloaded. Then `cargo build --release`
-This should get the project building but the executable crashes while querying the available network interfaces on my machine (maybe need to adapt code for windows).
+You will need to install `ncap` or the `WinPcap Developers Pack` as per the [libpnet](https://github.com/libpnet/libpnet) build instructions for Windows (I tested the latter). Then point your user environment variable `LIB` (create if nonexistent) to the folder where to find Packet.lib i.e. `WpdPack/Lib/x64/` from the WinPcap Developers Pack you just downloaded. Then `cargo build --release`
+This will get the project building.  
+Currently, in order to find the internet-connected network interface, it is necessary to disable disconnected-but-enabled interfaces (such as virtual adaperts for VPN).
 
 ## How to Run
 
