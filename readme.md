@@ -1,14 +1,13 @@
-# Diablo II Reverse(d) Engine
+# d2ng
 
-Toy project botting engine for learning rust & reverse engineering with one of my favorite games ever.  
+Toy packet injection engine for learning rust & reverse engineering with one of my favorite games ever.  
 
 As of now, this project just functions as a simple Diablo2 game server packet sniffer.  
-> Caution: Most of this code has been organized into a standalone library [libd2r](https://github.com/dorianprill/libd2r).
+> Note: Most game related code has been organized into a standalone library [libd2r](https://github.com/dorianprill/libd2r) to support this and other tools
 
-## Design Principles
+## Goals
 
 - cross platform without runtime/VM requirement  
-- speed, to be (i.e. pick) faster than other bots
 - low overhead to potentially run many instances
 - do not modify game memory, instead read and write raw network packages  
 - reproduce game state as accurately as possible/needed
@@ -18,13 +17,13 @@ As of now, this project just functions as a simple Diablo2 game server packet sn
 
 1. Read, Decode, and Print network packages for Game-, Realm-, and BNetChat servers (this is now entirely done in `libd2`, see repo)
    - [x]
-3. Priority based event handling for passive modules (e.g. chicken, pickit, \[move, combat, ...\])
+2. Priority based event handling for passive modules (e.g. chicken, pickit, [move, combat, ...])
    - [ ] Chicken module
    - [ ] Pickit module (parse configuration from .nip files, see kolbot)
-4. Pathing and Collision
+3. Pathing and Collision
    - [ ] Implement pathing (to walk/teleport to location on the same map)
    - [ ] Navigate to arbitrary locations in the game, considering found waypoints, quest state
-5. allow scripting with gluon, dyon, lua, wren, TypeScript?
+4. allow scripting with gluon, dyon, lua, wren, TypeScript?
    - [ ] TBD
 
 ## How to Build
@@ -47,7 +46,7 @@ Currently, in order to find the internet-connected network interface, it is nece
 ## How to Run
 
 1. Launch a Diablo II client.
-2. Execute `target/release/d2re` which will launch a command window
+2. Execute `target/release/d2ng` which will launch a command window
 3. Connect to b.net and watch the output of the packet sniffer in the command window (packet id + payload as hex)
 
 ## Disclaimer
