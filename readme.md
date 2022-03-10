@@ -1,5 +1,3 @@
-# d2ng
-
 Toy packet injection engine for learning rust & reverse engineering with one of my favorite games ever.  
 
 As of now, this project just functions as a simple Diablo2 game server packet sniffer.  
