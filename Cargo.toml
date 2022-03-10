@@ -1,5 +1,5 @@
 [package]
-name = "d2re"
+name = "d2redox"
 version = "0.1.0"
 authors = ["Dorian Prill"]
 edition = "2021"
